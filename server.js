@@ -5,11 +5,12 @@ const cors = require('cors')
 const fs = require('fs');
 const axios = require('axios')
 const mongoose = require('mongoose')
+const cron = require('node-cron')
 const Message = require('./model/message.js')
 require('dotenv').config()
 app.use(cors())
 app.use(express.json())
-app.use(express.urlencoded({extended: true}))
+app.use(express.urlencoded({ extended: true }))
 
 const { Client, LegacySessionAuth } = require('whatsapp-web.js');
 
@@ -29,7 +30,6 @@ const client = new Client({
 })
 
 
-
 client.on('authenticated', (session) => {
   sessionData = session;
   fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
@@ -45,14 +45,9 @@ client.on('qr', qr => {
 client.on('ready', async () => {
   console.log('Client is ready!');
   // const contacts = await client.getContacts()
-  // for (let i =0; i < 5; i++){
-  //     console.log(contacts[i])
-  //   }
 
-    // const manmanit = contacts.find(contact => contact.id._serialized.includes('524390666'))
-    // client.sendMessage(manmanit.id._serialized, 'hey baby')
-    // client.createGroup('testicles', [manmanit.id._serialized])
-    // let groupChatId 
+  // client.createGroup('testicles', [manmanit.id._serialized])
+  // let groupChatId 
   // const chats = await client.getChats()
   // const testGroup = chats.find(chat => chat.name === 'Test')
   // groupChatId = testGroup.id._serialized
@@ -60,14 +55,42 @@ client.on('ready', async () => {
   // const groupChat = new groupChat(groupChatId)
   // console.log('group chat: ',groupChat)
   // client.sendMessage(groupChatId,'so cool!')
-
 });
+
+const handleRecipientStack = async () => {
+  const messages = await Message.find()
+
+  const messagesStack = messages.filter(message => !message.isSent)
+  console.log('message stack: ',messagesStack)
+  messagesStack.forEach(async message => {
+    const numberId = await client.getNumberId(message.phone)
+    const serializedId = numberId._serialized
+    const randNum = Math.floor(Math.random() * 6 + 5)
+    setTimeout(() => {
+      console.log('sending auto message!')
+      sendAutoMsg(message, serializedId)
+    }, randNum * 1000)
+  })
+}
+
+const sendAutoMsg = async (msg, id) => {
+  console.log('@sendAutoMsg func')
+  const msgContent = 'this is a test message sent from whatsapp-web js!'
+  client.sendMessage(id, msgContent)
+  updateMessageStatus(msg)
+}
+
+const updateMessageStatus = async msg => {
+  msg.isSent = true
+  await msg.save()
+}
 
 client.initialize();
 
 client.on('message', async message => {
   const from = message._data.from.replace(/\D/g, '');
   const content = message.body
+
   // if(message.hasMedia) {
   //   try {
   //     const media = await message.downloadMedia();
@@ -76,40 +99,41 @@ client.on('message', async message => {
   //   } catch(err){
   //     console.log(err)
   //   }
+  // }
 
-    // }
-// add row to spreadsheet
-const messageObj = {
-  phone: from,
-  content : content
+  const messageObj = {
+    phone: from,
+    content: content
+  }
+
+  if (!message.author){ // if not from a group chat
+
+  try {
+    await axios.post(process.env.WEBHOOK_PATH, JSON.stringify(messageObj)) // row added to google sheet
+    const message = new Message(messageObj)
+    await message.save() // message added to mongoDB
+  } catch (err) {
+    console.log('error @message event ')
+  }
+  console.log(message.body.split('').reverse().join('')); // just for test
 }
-try {
-  const res = await axios.post(process.env.WEBHOOK_PATH, JSON.stringify(messageObj))
-  console.log('result: ',res)
-  const message = new Message(messageObj)
-  await message.save()
-}catch(err){
-  console.log('error @message event: ',err)
-}
- console.log(message.body.split('').reverse().join(''));
+
 });
 
-app.get('/', async (req,res) => {
-  res.send('boom')
+
+
+app.post('/', async (req, res) => {
+  const { phone, message, img = undefined } = req.body
+  console.log('img: ', img)
+  const numberId = await client.getNumberId(phone)
+  console.log('number id: ', numberId)
+  if (numberId) {
+    client.sendMessage(numberId._serialized, message)
+    res.send({ message: 'message sent!' })
+  } else res.send({ message: 'phone number is not valid' })
 })
 
-app.post('/', async (req,res) => {
- const { phone, message, img = undefined } = req.body
- console.log('img: ',img)
- const finalNumber = `972${phone.slice(1)}`
- const numberId = await  client.getNumberId(finalNumber)
- console.log('number id: ',numberId)
- if (numberId){
-   client.sendMessage(numberId._serialized,message)
-   res.send({message: 'message sent!'})
- } else res.send({message: 'phone number is not valid'})
-})
-
+cron.schedule('*/15 * * * *', handleRecipientStack)
 
 const mongoUrl = `mongodb+srv://itai_rozen:${process.env.MONGO_PASS}@cluster0.sihrb.mongodb.net/${process.env.DB}?retryWrites=true&w=majority`
 app.listen(process.env.PORT, () => {
