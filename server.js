@@ -1,9 +1,13 @@
 const express = require('express')
 const app = express()
 const qrcode = require('qrcode-terminal');
+const cors = require('cors')
 const fs = require('fs');
-const webhookPath = 'eo10srzjlhzmr5l.m.pipedream.net'
 const axios = require('axios')
+const mongoose = require('mongoose')
+const Message = require('./model/message.js')
+require('dotenv').config()
+app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 
@@ -56,13 +60,14 @@ client.on('ready', async () => {
   // const groupChat = new groupChat(groupChatId)
   // console.log('group chat: ',groupChat)
   // client.sendMessage(groupChatId,'so cool!')
+
 });
 
 client.initialize();
 
 client.on('message', async message => {
   const from = message._data.from.replace(/\D/g, '');
-  const content = message.body.split('').reverse().join('')
+  const content = message.body
   // if(message.hasMedia) {
   //   try {
   //     const media = await message.downloadMedia();
@@ -71,13 +76,21 @@ client.on('message', async message => {
   //   } catch(err){
   //     console.log(err)
   //   }
-  const res = await axios.post(webhookPath, {
-    phone: from,
-    content: content
-  })
-  console.log('result: ',res)
-// }
+
+    // }
 // add row to spreadsheet
+const messageObj = {
+  phone: from,
+  content : content
+}
+try {
+  const res = await axios.post(process.env.WEBHOOK_PATH, JSON.stringify(messageObj))
+  console.log('result: ',res)
+  const message = new Message(messageObj)
+  await message.save()
+}catch(err){
+  console.log('error @message event: ',err)
+}
  console.log(message.body.split('').reverse().join(''));
 });
 
@@ -98,6 +111,8 @@ app.post('/', async (req,res) => {
 })
 
 
-
-app.listen(4001, () => console.log('up & running'))
+const mongoUrl = `mongodb+srv://itai_rozen:${process.env.MONGO_PASS}@cluster0.sihrb.mongodb.net/${process.env.DB}?retryWrites=true&w=majority`
+app.listen(process.env.PORT, () => {
+  mongoose.connect(mongoUrl, () => console.log('server connected. mongo connected'))
+})
 
