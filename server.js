@@ -38,6 +38,7 @@ client.on('authenticated', (session) => {
     }
   });
 });
+
 client.on('qr', qr => {
   qrcode.generate(qr, { small: true });
 });
@@ -57,25 +58,31 @@ client.on('ready', async () => {
   // client.sendMessage(groupChatId,'so cool!')
 });
 
-const handleRecipientStack = async () => {
-  const messages = await Message.find()
 
-  const messagesStack = messages.filter(message => !message.isSent)
-  console.log('message stack: ', messagesStack)
-  messagesStack.forEach(async message => {
-    const numberId = await client.getNumberId(message.phone)
-    const serializedId = numberId._serialized
-    const randNum = Math.floor(Math.random() * 6 + 10)
-    setTimeout(() => {
-      console.log('sending auto message!')
+const handleRecipientStack = async () => {
+  console.log('entered stack')
+  try {
+    const messages = await Message.find()
+    console.log('messages: ', messages.length)
+
+    const messagesStack = messages.filter(message => !message.isSent)
+    console.log('messages in stack: ', messagesStack.length)
+    for (const message of messagesStack) {
+      const numberId = await client.getNumberId(message.phone)
+      const serializedId = numberId._serialized
+      const randNum = Math.floor(Math.random() * 6 + 10)
+      await new Promise(resolve => setTimeout(resolve, randNum * 1000))
       sendAutoMsg(message, serializedId)
-    }, randNum * 1000)
-  })
+      console.log('sending auto message!')
+    }
+  } catch (err) {
+    console.log('err')
+  }
 }
 
 const sendAutoMsg = async (msg, id) => {
   console.log('@sendAutoMsg func')
-  const msgContent = 'this is a test message sent from whatsapp-web js!'
+  const msgContent = 'death to all humans!'
   client.sendMessage(id, msgContent)
   updateMessageStatus(msg)
 }
@@ -105,8 +112,8 @@ client.on('message', async message => {
 const addMessageToSheets = async messageObj => {
   try {
     await axios.post(process.env.WEBHOOK_PATH, JSON.stringify(messageObj)) // row added to google sheet
-  } catch(err){
-    console.log('err @adding to sheets: ',err)
+  } catch (err) {
+    console.log('err @adding to sheets: ', err)
   }
 }
 
@@ -115,8 +122,8 @@ const addMessageToMongo = async messageObj => {
     const message = new Message(messageObj)
     await message.save() // message added to mongoDB
     console.log('message added')
-  } catch(err){
-    console.log('err @adding to mongo: ',err)
+  } catch (err) {
+    console.log('err @adding to mongo: ', err)
   }
 }
 
@@ -131,10 +138,8 @@ app.post('/', async (req, res) => {
   } else res.send({ message: 'phone number is not valid' })
 })
 
-const task = cron.schedule('* * * * *', () => {
-  console.log('cron job is running!')
-  setTimeout(stopAndRestartTask, 58 * 1000)
-})
+
+let task
 
 const stopAndRestartTask = () => {
   task.stop()
@@ -146,7 +151,13 @@ const stopAndRestartTask = () => {
 
 const mongoUrl = `mongodb+srv://itai_rozen:${process.env.MONGO_PASS}@cluster0.sihrb.mongodb.net/${process.env.DB}?retryWrites=true&w=majority`
 app.listen(process.env.PORT, () => {
-  mongoose.connect(mongoUrl, () => console.log('server connected. mongo connected'))
+  mongoose.connect(mongoUrl, () => {
+    console.log('mongo & server connected')
+    task = cron.schedule('* * * * *', () => {
+      handleRecipientStack()
+      setTimeout(stopAndRestartTask, 58 * 1000)
+    })
+  })
 })
 
   // if(message.hasMedia) {
