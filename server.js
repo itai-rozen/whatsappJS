@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const qrcode = require('qrcode-terminal');
+const qrcode = require('qrcode');
 const cors = require('cors')
 const fs = require('fs');
 const axios = require('axios')
@@ -11,7 +11,6 @@ require('dotenv').config()
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-
 const { Client, LegacySessionAuth } = require('whatsapp-web.js');
 
 // Path where the session data will be stored
@@ -29,18 +28,32 @@ const client = new Client({
   })
 })
 
+client.initialize();
 
-client.on('authenticated', (session) => {
-  sessionData = session;
-  fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
-    if (err) {
-      console.error(err);
-    }
-  });
+client.on('authenticated', async (session) => {
+
+  console.log('enetered auth event')
+  try {
+
+    sessionData =  session;
+    fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
+      if (err) {
+        console.error(err);
+      }
+    });
+
+  } catch (err) {
+    console.log(err)
+  }
 });
 
+let qrImgSrc
+
 client.on('qr', qr => {
-  qrcode.generate(qr, { small: true });
+  // qrcode.generate(qr, { small: true });
+  qrcode.toDataURL(qr, (err, src) => {
+    qrImgSrc = src
+  })
 });
 
 client.on('ready', async () => {
@@ -59,10 +72,12 @@ client.on('ready', async () => {
 });
 
 
+
+
 const handleRecipientStack = async () => {
   console.log('entered stack')
   try {
-    const messages = await Message.find()
+    const messages = await Message.find().sort({ _id: 1 }).limit(30)
     console.log('messages: ', messages.length)
 
     const messagesStack = messages.filter(message => !message.isSent)
@@ -92,7 +107,6 @@ const updateMessageStatus = async msg => {
   await msg.save()
 }
 
-client.initialize();
 
 client.on('message', async message => {
   const from = message._data.from.replace(/\D/g, '');
@@ -138,6 +152,10 @@ app.post('/', async (req, res) => {
   } else res.send({ message: 'phone number is not valid' })
 })
 
+app.get('/qr', (req, res) => {
+  if (qrImgSrc) res.status(200).send({ qr: qrImgSrc })
+  else res.send({ error: 'qr has not been generated yet. pleast wait' })
+})
 
 let task
 
@@ -147,15 +165,13 @@ const stopAndRestartTask = () => {
   task.start()
 }
 
-
-
 const mongoUrl = `mongodb+srv://itai_rozen:${process.env.MONGO_PASS}@cluster0.sihrb.mongodb.net/${process.env.DB}?retryWrites=true&w=majority`
 app.listen(process.env.PORT, () => {
   mongoose.connect(mongoUrl, () => {
     console.log('mongo & server connected')
-    task = cron.schedule('* * * * *', () => {
+    task = cron.schedule('*/5 * * * *', () => {
       handleRecipientStack()
-      setTimeout(stopAndRestartTask, 58 * 1000)
+      setTimeout(stopAndRestartTask, 5 * 60 * 1000 - 2000)
     })
   })
 })

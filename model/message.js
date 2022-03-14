@@ -8,9 +8,9 @@ const messageSchema = new mongoose.Schema({
   content : {
     type: String
   },
-  isSent : {
-    type: Boolean,
-    default: false
+  provider : {
+    type: String,
+    requires: true
   }
 })
 
