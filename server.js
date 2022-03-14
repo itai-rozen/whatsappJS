@@ -55,8 +55,14 @@ client.on('qr',  qr => {
   })
 });
 
+let task
+
 client.on('ready', async () => {
   console.log('Client is ready!');
+  task = cron.schedule('*/5 * * * *', () => {
+    handleRecipientStack()
+    setTimeout(stopAndRestartTask, 5 * 60 * 1000 - 2000)
+  })
   // const contacts = await client.getContacts()
 
   // client.createGroup('testicles', [manmanit.id._serialized])
@@ -77,6 +83,15 @@ app.get('/messages', async (req, res) => {
   try {
     const messages = await Message.find()
     res.send(messages)
+  } catch (err) {
+    res.status(400).send(err)
+  }
+})
+
+app.get('/history', async (req, res) => {
+  try {
+    const history = await History.find()
+    res.send(history)
   } catch (err) {
     res.status(400).send(err)
   }
@@ -156,7 +171,7 @@ const addToHistoryQue = async (msg, crash_log = '') => {
   }
 }
 
-const deleteFromMessagesQue = id => {
+const deleteFromMessagesQue = async id => {
   try {
     await Message.deleteOne({_id: id})
   } catch (err){
@@ -215,7 +230,6 @@ app.get('/qr', (req, res) => {
   else res.send({ qr: '' })
 })
 
-let task
 
 const stopAndRestartTask = () => {
   task.stop()
@@ -227,10 +241,6 @@ const mongoUrl = `mongodb+srv://itai_rozen:${process.env.MONGO_PASS}@cluster0.si
 app.listen(process.env.PORT, () => {
   mongoose.connect(mongoUrl, () => {
     console.log('mongo & server connected')
-    task = cron.schedule('*/5 * * * *', () => {
-      handleRecipientStack()
-      setTimeout(stopAndRestartTask, 5 * 60 * 1000 - 2000)
-    })
   })
 })
 

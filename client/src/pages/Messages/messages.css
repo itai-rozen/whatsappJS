@@ -1,0 +1,9 @@
+.all-messages, .headers , .message{
+  display: flex;
+  justify-content: space-around;
+}
+
+.all-messages p {
+  padding: 0 5px;
+}
+
