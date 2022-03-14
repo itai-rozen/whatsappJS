@@ -19,7 +19,6 @@ const wbm = require('wbm')
 let qrImgSrc
 let isAuthenticated = false
 
-app.get('/login-ww', (req, res) => {
 
   wbm.start({ showBrowser: false, qrCodeData: true, session: true })
     .then(async qrCodeData => {
@@ -33,8 +32,7 @@ app.get('/login-ww', (req, res) => {
       isAuthenticated = true
       await wbm.end();
       res.send({auth: isAuthenticated})
-    }).catch(err => { res.send({auth: isAuthenticated}); });
-})
+    }).catch(err =>  console.log(err));
 
 
 app.get('/qr', (req, res) => {
