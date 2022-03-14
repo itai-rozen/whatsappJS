@@ -41,6 +41,11 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 
 app.get('/connect', (req, res) => {
 
+  if (sessionData){
+    io.emit('connectUser', true)
+    res.end()
+  }
+
   client = new Client({
     authStrategy: new LegacySessionAuth({
       session: sessionData

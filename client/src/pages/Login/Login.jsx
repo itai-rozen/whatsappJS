@@ -13,7 +13,7 @@ const Login = () => {
 
   const socket = io('http://localhost:4001')
 
-  socket.on('getQr' , data => {
+  socket.on('getQr', data => {
     setImgSrc(data)
     setIsLoading(false)
   })
@@ -21,12 +21,12 @@ const Login = () => {
   socket.on('connectUser', data => {
     setIsConnected(data)
   })
-  
+
   const connect = async () => {
     setIsLoading(true)
     try {
       await axios.get('http://localhost:4001/connect')
-    } catch(err){
+    } catch (err) {
       console.log(err)
       setIsLoading(false)
     }
@@ -36,7 +36,7 @@ const Login = () => {
     try {
       await axios.get('http://localhost:4001/disconnect')
       setImgSrc('')
-    }catch(err){
+    } catch (err) {
       console.log(err)
     }
   }
@@ -46,13 +46,19 @@ const Login = () => {
   useEffect(() => {
   }, [])
 
-  return <>
-  <button disabled={!isConnected} onClick={connect} >Connect</button>
-  <button disabled={isConnected} onClick={disconnect}>Disconnect</button>
-  <img src={imgSrc} />
-  {isLoading && <Spinner />}
-  {isConnected && <Link to="/messages">your messages</Link>}
-  </>
+  return <div className='login-container'>
+    <div className="container">
+      <div className="img-container">
+        <img src={imgSrc} />
+      </div>
+      <div className="btn-container">
+        <button className='connect-btn' disabled={isConnected} onClick={connect} >Connect</button>
+        <button className='connect-btn' disabled={!isConnected} onClick={disconnect}>Disconnect</button>
+      </div>
+      {isLoading && <Spinner />}
+      {isConnected && <Link to="/messages">your messages</Link>}
+    </div>
+  </div>
 }
 
 export default Login
