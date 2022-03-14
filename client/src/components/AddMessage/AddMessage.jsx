@@ -15,8 +15,8 @@ const AddMessage = ({ setShowAddModal, getMessages }) => {
         content, 
         provider
       })
-      setShowAddModal(false)
       getMessages()
+      setShowAddModal(false)
     } catch(err){
       console.dir(err)
     }

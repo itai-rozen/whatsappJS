@@ -7,6 +7,7 @@ const axios = require('axios')
 const mongoose = require('mongoose')
 const cron = require('node-cron')
 const Message = require('./model/message.js')
+const History = require('./model/history.js')
 require('dotenv').config()
 app.use(cors())
 app.use(express.json())
@@ -28,7 +29,6 @@ const client = new Client({
   })
 })
 
-client.initialize();
 
 client.on('authenticated', async (session) => {
 
@@ -41,7 +41,6 @@ client.on('authenticated', async (session) => {
         console.error(err);
       }
     });
-
   } catch (err) {
     console.log(err)
   }
@@ -49,7 +48,7 @@ client.on('authenticated', async (session) => {
 
 let qrImgSrc
 
-client.on('qr', qr => {
+client.on('qr',  qr => {
   // qrcode.generate(qr, { small: true });
   qrcode.toDataURL(qr, (err, src) => {
     qrImgSrc = src
@@ -72,56 +71,115 @@ client.on('ready', async () => {
 });
 
 
+client.initialize();
 
+app.get('/messages', async (req, res) => {
+  try {
+    const messages = await Message.find()
+    res.send(messages)
+  } catch (err) {
+    res.status(400).send(err)
+  }
+})
+
+
+// for testing
+app.post('/messages', async (req,res) => {
+  console.log('POST /messages')
+  const oldest30Messages = await Message.find().sort({ _id: 1 }).limit(1)
+  sendIntervaledMessages(oldest30Messages)
+  res.end()
+})
+
+// for testing
+app.post('/newMsg', async (req, res) => {
+  const { body } = req
+  try {
+    const message = new Message(body)
+    await message.save()
+    res.end()
+  } catch (err) {
+    res.status(400).send(err)
+  }
+})
 
 const handleRecipientStack = async () => {
+  return
   console.log('entered stack')
   try {
-    const messages = await Message.find().sort({ _id: 1 }).limit(30)
-    console.log('messages: ', messages.length)
-
-    const messagesStack = messages.filter(message => !message.isSent)
-    console.log('messages in stack: ', messagesStack.length)
-    for (const message of messagesStack) {
-      const numberId = await client.getNumberId(message.phone)
-      const serializedId = numberId._serialized
-      const randNum = Math.floor(Math.random() * 6 + 10)
-      await new Promise(resolve => setTimeout(resolve, randNum * 1000))
-      sendAutoMsg(message, serializedId)
-      console.log('sending auto message!')
-    }
+    const messagesStack = await Message.find().sort({ _id: 1 }).limit(30)
+    console.log('messages: ', messagesStack.length)
+    sendIntervaledMessages(messagesStack)
   } catch (err) {
-    console.log('err')
+    console.log('err: ',err)
+  }
+}
+
+const sendIntervaledMessages = async messages => {
+  for (const message of messages) {
+    const numberId = await client.getNumberId(message.phone)
+    const serializedId = numberId._serialized
+    const randNum = Math.floor(Math.random() * 6 + 10)
+    await new Promise(resolve => setTimeout(resolve, randNum * 1000))
+    sendAutoMsg(message, serializedId)
+    console.log('sending auto message!')
   }
 }
 
 const sendAutoMsg = async (msg, id) => {
   console.log('@sendAutoMsg func')
-  const msgContent = 'death to all humans!'
-  client.sendMessage(id, msgContent)
-  updateMessageStatus(msg)
+  let error = ''
+  try {
+    await client.sendMessage(id, msg.content)
+  } catch(err) {
+    error = err
+  }
+
+  try {
+    const isAdded = await addToHistoryQue(msg, error)
+    if (isAdded) deleteFromMessagesQue(msg._id)
+  }catch(err){
+    console.log(err)
+  }
+
 }
 
-const updateMessageStatus = async msg => {
-  msg.isSent = true
-  await msg.save()
+const addToHistoryQue = async (msg, crash_log = '') => {
+  const { phone, content, provider } = msg
+  try {
+    const historyDocument = new History({phone, content, provider, crash_log })
+    await historyDocument.save()
+    return true 
+  } catch(err){
+    console.log(err)
+    return false
+  }
+}
+
+const deleteFromMessagesQue = id => {
+  try {
+    await Message.deleteOne({_id: id})
+  } catch (err){
+    console.log(err)
+  }
 }
 
 
-client.on('message', async message => {
-  const from = message._data.from.replace(/\D/g, '');
-  const content = message.body
 
-  console.log('message: ', message)
-  const messageObj = {
-    phone: from,
-    content: content
-  }
-  if (!message.author) { // if not from a group chat
-    addMessageToSheets(messageObj)
-    addMessageToMongo(messageObj)
-  }
-});
+// client.on('message', async message => {
+//   const from = message._data.from.replace(/\D/g, '');
+//   const content = message.body
+
+//   console.log('message: ', message)
+//   const messageObj = {
+//     phone: from,
+//     content: content
+//   }
+//   if (!message.author) { // if not from a group chat
+//     addMessageToSheets(messageObj)
+//     addMessageToMongo(messageObj)
+//   }
+// });
 
 const addMessageToSheets = async messageObj => {
   try {
@@ -141,20 +199,20 @@ const addMessageToMongo = async messageObj => {
   }
 }
 
-app.post('/', async (req, res) => {
-  const { phone, message, img = undefined } = req.body
-  console.log('img: ', img)
-  const numberId = await client.getNumberId(phone)
-  console.log('number id: ', numberId)
-  if (numberId) {
-    client.sendMessage(numberId._serialized, message)
-    res.send({ message: 'message sent!' })
-  } else res.send({ message: 'phone number is not valid' })
-})
+// app.post('/', async (req, res) => {
+//   const { phone, message, img = undefined } = req.body
+//   console.log('img: ', img)
+//   const numberId = await client.getNumberId(phone)
+//   console.log('number id: ', numberId)
+//   if (numberId) {
+//     client.sendMessage(numberId._serialized, message)
+//     res.send({ message: 'message sent!' })
+//   } else res.send({ message: 'phone number is not valid' })
+// })
 
 app.get('/qr', (req, res) => {
   if (qrImgSrc) res.status(200).send({ qr: qrImgSrc })
-  else res.send({ error: 'qr has not been generated yet. pleast wait' })
+  else res.send({ qr: '' })
 })
 
 let task

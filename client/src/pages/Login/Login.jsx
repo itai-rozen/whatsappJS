@@ -35,8 +35,12 @@ const Login = () => {
     }
     setIsLoading(false)
   }
+
+  useEffect(() => {
+    tryGettingQr()
+  }, [])
   return <>
-  <button onClick={tryGettingQr}>hook a device</button>
+  {/* <button onClick={tryGettingQr}>hook a device</button> */}
   <img src={imgSrc} />
   {isLoading && <p>Loading...</p>}
   {!isLoading && <>

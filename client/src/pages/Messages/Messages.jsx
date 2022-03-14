@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import axios from 'axios'
 import './messages.css'
 import { useSearchParams } from 'react-router-dom'
@@ -17,6 +18,14 @@ const Messages = () => {
     }
   }
 
+  const sendMessages = async () => {
+    try {
+      await axios.post('http://localhost:4001/messages',{})
+    }catch(err){
+      console.log(err)
+    }
+  }
+
   useEffect(() => {
     getMessages()
   },[])
@@ -30,6 +39,8 @@ const Messages = () => {
     })}
     <button onClick={() => setShowAddModal(true)}>add message</button>
     {showAddModal && <AddMessage getMessages={getMessages} setShowAddModal={setShowAddModal} />}
+    <button onClick={sendMessages} >send messages</button>
+    <Link to="/">home</Link>
   </div>
 }
 
