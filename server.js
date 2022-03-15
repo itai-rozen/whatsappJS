@@ -26,24 +26,27 @@ const { Client, LegacySessionAuth } = require('whatsapp-web.js');
 // Path where the session data will be stored
 const SESSION_FILE_PATH = './session.json';
 
-// Load the session data if it has been previously saved
 let sessionData
 let client
 let task
-let qrImgSrc
 
 
 
+// Load the session data if it has been previously saved
 
 if (fs.existsSync(SESSION_FILE_PATH)) {
   sessionData = require(SESSION_FILE_PATH);
 }
 
+app.get('/is-connected', (req,res) => {
+  res.send(fs.existsSync(SESSION_FILE_PATH))
+})
+
 app.get('/connect', (req, res) => {
 
   if (sessionData){
     io.emit('connectUser', true)
-    res.end()
+    return res.end()
   }
 
   client = new Client({
@@ -51,9 +54,10 @@ app.get('/connect', (req, res) => {
       session: sessionData
     })
   })
-
+  console.log(client)
 
   client.on('authenticated', async (session) => {
+    console.log('enetered auth')
     try {
       sessionData = session;
       fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
@@ -70,7 +74,6 @@ app.get('/connect', (req, res) => {
   client.on('qr', qr => {
     // qrcode.generate(qr, { small: true });
     qrcode.toDataURL(qr, (err, src) => {
-      qrImgSrc = src
       io.emit('getQr', src)
     })
   });
@@ -85,20 +88,13 @@ app.get('/connect', (req, res) => {
     io.emit('connectUser', true)
     res.end()
   });
-
-
   client.initialize();
-})
-
-app.get('/qr', (req, res) => {
-  if (qrImgSrc) res.status(200).send({ qr: qrImgSrc })
-  else res.send({ qr: '' })
 })
 
 app.get('/disconnect', async (req, res) => {
   try {
     fs.unlinkSync(SESSION_FILE_PATH)
-    qrImgSrc = ''
+    await client.logout()
     client = ''
     sessionData = ''
     io.emit('connectUser', false)
@@ -137,6 +133,7 @@ app.post('/messages', async (req, res) => {
 
 // for testing
 app.post('/newMsg', async (req, res) => {
+  
   const { body } = req
   try {
     const message = new Message(body)
@@ -207,26 +204,6 @@ const deleteFromMessagesQue = async id => {
   }
 }
 
-const addMessageToSheets = async messageObj => {
-  try {
-    await axios.post(process.env.WEBHOOK_PATH, JSON.stringify(messageObj)) // row added to google sheet
-  } catch (err) {
-    console.log('err @adding to sheets: ', err)
-  }
-}
-
-const addMessageToMongo = async messageObj => {
-  try {
-    const message = new Message(messageObj)
-    await message.save() // message added to mongoDB
-    console.log('message added')
-  } catch (err) {
-    console.log('err @adding to mongo: ', err)
-  }
-}
-
-
-
 const stopAndRestartTask = () => {
   task.stop()
   console.log('cron job stopped')
@@ -239,50 +216,3 @@ server.listen(process.env.PORT, () => {
     console.log('mongo & server connected')
   })
 })
-
-  // if(message.hasMedia) {
-  //   try {
-  //     const media = await message.downloadMedia();
-  //     console.log('media: ',media)
-  //     image = media.data
-  //   } catch(err){
-  //     console.log(err)
-  //   }
-  // }
-      // const contacts = await client.getContacts()
-
-    // client.createGroup('testicles', [manmanit.id._serialized])
-    // let groupChatId 
-    // const chats = await client.getChats()
-    // const testGroup = chats.find(chat => chat.name === 'Test')
-    // groupChatId = testGroup.id._serialized
-    // console.log('group chat id: ', groupChatId)
-    // const groupChat = new groupChat(groupChatId)
-    // console.log('group chat: ',groupChat)
-    // client.sendMessage(groupChatId,'so cool!')
-
-    // app.post('/', async (req, res) => {
-//   const { phone, message, img = undefined } = req.body
-//   console.log('img: ', img)
-//   const numberId = await client.getNumberId(phone)
-//   console.log('number id: ', numberId)
-//   if (numberId) {
-//     client.sendMessage(numberId._serialized, message)
-//     res.send({ message: 'message sent!' })
-//   } else res.send({ message: 'phone number is not valid' })
-// })
-
-// client.on('message', async message => {
-//   const from = message._data.from.replace(/\D/g, '');
-//   const content = message.body
-
-//   console.log('message: ', message)
-//   const messageObj = {
-//     phone: from,
-//     content: content
-//   }
-//   if (!message.author) { // if not from a group chat
-//     addMessageToSheets(messageObj)
-//     addMessageToMongo(messageObj)
-//   }
-// });

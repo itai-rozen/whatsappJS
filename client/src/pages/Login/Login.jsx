@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import io from 'socket.io-client'
 import axios from 'axios';
 import './login.css'
-import Spinner from '../../components/AddMessage/Spinner/Spinner';
+import Spinner from '../../components/Spinner/Spinner';
 
 const Login = () => {
 
@@ -26,6 +26,7 @@ const Login = () => {
     setIsLoading(true)
     try {
       await axios.get('http://localhost:4001/connect')
+
     } catch (err) {
       console.log(err)
       setIsLoading(false)
@@ -41,10 +42,19 @@ const Login = () => {
     }
   }
 
-
+  const checkIsConnected = async () => {
+    try {
+      const { data } = await axios.get('http://localhost:4001/is-connected')
+      console.log('is user connected? ', data)
+      setIsConnected(data)
+    }catch(err){
+      console.log(err)
+    }
+  }
 
   useEffect(() => {
-  }, [])
+    checkIsConnected()
+  },[])
 
   return <div className='login-container'>
     <div className="container">

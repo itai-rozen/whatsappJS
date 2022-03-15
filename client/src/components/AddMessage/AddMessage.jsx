@@ -24,7 +24,7 @@ const AddMessage = ({ setShowAddModal, getMessages }) => {
 
   return <div className='add-form-container'>
     <form className='add-form' onSubmit={e => createMessage(e)}>
-      <button onClick={() => setShowAddModal(true)}>X</button>
+      <button onClick={() => setShowAddModal(false)}>X</button>
       <label htmlFor="phone">phone</label>
       <input type="text" id="phone" value={phone} onChange={e => setPhone(e.target.value)} />
       <label htmlFor="">content</label>

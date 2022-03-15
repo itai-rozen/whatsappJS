@@ -42,7 +42,8 @@ const Messages = () => {
     getMessages()
     getHistory()
   }, [])
-  return <div className='messages-container'>
+  return <>
+  <div className={`messages-container ${showAddModal && 'blur'}`}>
 
     <div className="all-messages">
       <div className="messages que">
@@ -78,12 +79,15 @@ const Messages = () => {
         })}
       </div>
     </div>
-
+    <div className="btn-container">
     <button onClick={() => setShowAddModal(true)}>add message</button>
-    {showAddModal && <AddMessage getMessages={getMessages} setShowAddModal={setShowAddModal} />}
     <button onClick={sendMessages} >send messages</button>
     <Link to="/">home</Link>
+    </div>
   </div>
+    {showAddModal &&  <AddMessage getMessages={getMessages} setShowAddModal={setShowAddModal} /> }
+  </> 
+
 }
 
 export default Messages

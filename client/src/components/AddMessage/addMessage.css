@@ -1,0 +1,27 @@
+.add-form-container {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.add-form-container > .add-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #7C8483;
+  padding: 10px 20px;
+  border-radius: 12px;
+}
+.add-form label {
+  font-size: 1.3rem;
+}
+.add-form input {
+  padding: 5px 10px;
+  margin: 5px;
+  font-size: 1.3rem;
+}
