@@ -1,14 +1,24 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
+import io from 'socket.io-client'
 import './messages.css'
-import { useSearchParams } from 'react-router-dom'
 import AddMessage from '../../components/AddMessage/AddMessage'
 
 const Messages = () => {
   const [messages, setMessages] = useState([])
   const [historyMessages, setHistoryMessages] = useState([])
   const [showAddModal, setShowAddModal] = useState(false)
+
+  const socket = io('http://localhost:4001')
+
+  socket.on('messageQue', data => {
+    setMessages(data)
+  })
+
+  socket.on('historyQue', data => {
+    setHistoryMessages(data)
+  })
 
   const getHistory = async () => {
     try {

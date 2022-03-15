@@ -27,7 +27,7 @@ const { Client, LegacySessionAuth } = require('whatsapp-web.js');
 const SESSION_FILE_PATH = './session.json';
 
 let sessionData
-let client
+let client 
 let task
 
 
@@ -36,6 +36,11 @@ let task
 
 if (fs.existsSync(SESSION_FILE_PATH)) {
   sessionData = require(SESSION_FILE_PATH);
+  client = new Client({authStrategy : new LegacySessionAuth({
+    session : sessionData
+  })})
+  startCronJob()
+  client.initialize()
 }
 
 app.get('/is-connected', (req,res) => {
@@ -44,17 +49,12 @@ app.get('/is-connected', (req,res) => {
 
 app.get('/connect', (req, res) => {
 
-  if (sessionData){
-    io.emit('connectUser', true)
-    return res.end()
-  }
 
   client = new Client({
     authStrategy: new LegacySessionAuth({
       session: sessionData
     })
   })
-  console.log(client)
 
   client.on('authenticated', async (session) => {
     console.log('enetered auth')
@@ -70,7 +70,7 @@ app.get('/connect', (req, res) => {
     }
   });
 
-
+  console.dir(client)
   client.on('qr', qr => {
     // qrcode.generate(qr, { small: true });
     qrcode.toDataURL(qr, (err, src) => {
@@ -81,10 +81,11 @@ app.get('/connect', (req, res) => {
 
   client.on('ready', async () => {
     console.log('Client is ready!');
-    task = cron.schedule('*/5 * * * *', () => {
-      handleRecipientStack()
-      setTimeout(stopAndRestartTask, 5 * 60 * 1000 - 2000)
-    })
+    startCronJob()
+    // task = cron.schedule('*/5 * * * *', () => {
+    //   handleRecipientStack()
+    //   setTimeout(stopAndRestartTask, 5 * 60 * 1000 - 2000)
+    // })
     io.emit('connectUser', true)
     res.end()
   });
@@ -97,6 +98,7 @@ app.get('/disconnect', async (req, res) => {
     await client.logout()
     client = ''
     sessionData = ''
+    task.stop()
     io.emit('connectUser', false)
     res.status(200).send()
   } catch (err) {
@@ -144,8 +146,9 @@ app.post('/newMsg', async (req, res) => {
   }
 })
 
+
+
 const handleRecipientStack = async () => {
-  return
   console.log('entered stack')
   try {
     const messagesStack = await Message.find().sort({ _id: 1 }).limit(30)
@@ -189,6 +192,8 @@ const addToHistoryQue = async (msg, crash_log = '') => {
   try {
     const historyDocument = new History({ phone, content, provider, crash_log })
     await historyDocument.save()
+    const historyMessages = await History.find()
+    io.emit('historyQue', historyMessages)
     return true
   } catch (err) {
     console.log(err)
@@ -199,9 +204,18 @@ const addToHistoryQue = async (msg, crash_log = '') => {
 const deleteFromMessagesQue = async id => {
   try {
     await Message.deleteOne({ _id: id })
+    const messages = await Message.find()
+    io.emit('messageQue', messages)
   } catch (err) {
     console.log(err)
   }
+}
+
+function startCronJob() {
+  task = cron.schedule('*/5 * * * *', () => {
+    handleRecipientStack()
+    setTimeout(stopAndRestartTask, 5 * 60 * 1000 - 2000)
+  })
 }
 
 const stopAndRestartTask = () => {
