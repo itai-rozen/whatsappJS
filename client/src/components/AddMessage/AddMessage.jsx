@@ -10,7 +10,7 @@ const AddMessage = ({ setShowAddModal, getMessages }) => {
   const createMessage = async e => {
     e.preventDefault()
     try {
-      await axios.post('http://localhost:4001/newMsg', {
+      await axios.post('/newMsg', {
         phone,
         content, 
         provider

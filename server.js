@@ -39,6 +39,7 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
   client = new Client({authStrategy : new LegacySessionAuth({
     session : sessionData
   })})
+  console.dir(client.options)
   startCronJob()
   client.initialize()
 }
@@ -49,7 +50,7 @@ app.get('/is-connected', (req,res) => {
 
 app.get('/connect', (req, res) => {
 
-
+  console.log('hi /connect')
   client = new Client({
     authStrategy: new LegacySessionAuth({
       session: sessionData
@@ -70,9 +71,9 @@ app.get('/connect', (req, res) => {
     }
   });
 
-  console.dir(client)
   client.on('qr', qr => {
     // qrcode.generate(qr, { small: true });
+    console.log('qr generated')
     qrcode.toDataURL(qr, (err, src) => {
       io.emit('getQr', src)
     })
@@ -82,10 +83,6 @@ app.get('/connect', (req, res) => {
   client.on('ready', async () => {
     console.log('Client is ready!');
     startCronJob()
-    // task = cron.schedule('*/5 * * * *', () => {
-    //   handleRecipientStack()
-    //   setTimeout(stopAndRestartTask, 5 * 60 * 1000 - 2000)
-    // })
     io.emit('connectUser', true)
     res.end()
   });

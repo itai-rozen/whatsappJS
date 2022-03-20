@@ -25,7 +25,7 @@ const Login = () => {
   const connect = async () => {
     setIsLoading(true)
     try {
-      await axios.get('http://localhost:4001/connect')
+      await axios.get('/connect')
 
     } catch (err) {
       console.log(err)
@@ -35,7 +35,7 @@ const Login = () => {
 
   const disconnect = async () => {
     try {
-      await axios.get('http://localhost:4001/disconnect')
+      await axios.get('/disconnect')
       setImgSrc('')
     } catch (err) {
       console.log(err)
@@ -44,7 +44,7 @@ const Login = () => {
 
   const checkIsConnected = async () => {
     try {
-      const { data } = await axios.get('http://localhost:4001/is-connected')
+      const { data } = await axios.get('/is-connected')
       console.log('is user connected? ', data)
       setIsConnected(data)
     }catch(err){

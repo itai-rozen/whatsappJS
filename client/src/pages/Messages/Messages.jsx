@@ -10,7 +10,7 @@ const Messages = () => {
   const [historyMessages, setHistoryMessages] = useState([])
   const [showAddModal, setShowAddModal] = useState(false)
 
-  const socket = io('http://localhost:4001')
+  const socket = io('http://localhost:4001/')
 
   socket.on('messageQue', data => {
     setMessages(data)
@@ -22,7 +22,7 @@ const Messages = () => {
 
   const getHistory = async () => {
     try {
-      const { data } = await axios.get('http://localhost:4001/history')
+      const { data } = await axios.get('/history')
       setHistoryMessages(data)
     } catch (err) {
       console.log(err)
@@ -31,7 +31,7 @@ const Messages = () => {
 
   const getMessages = async () => {
     try {
-      const { data } = await axios.get('http://localhost:4001/messages')
+      const { data } = await axios.get('/messages')
       setMessages(data)
     } catch (err) {
       console.log(err)
@@ -40,7 +40,7 @@ const Messages = () => {
 
   const sendMessages = async () => {
     try {
-      await axios.post('http://localhost:4001/messages', {})
+      await axios.post('/messages', {})
       getMessages()
       getHistory()
     } catch (err) {
