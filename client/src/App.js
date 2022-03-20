@@ -6,7 +6,7 @@ import Messages from './pages/Messages/Messages';
 function App() {
 
   const url = process.env.NODE_ENV === 'production' ?
-                                       'https://we-send-like-crazy.herokuapp.com/':
+                                       '/':
                                        'http://localhost:4001'
   return (
     <div className="App">
