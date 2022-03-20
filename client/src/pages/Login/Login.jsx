@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import io from 'socket.io-client'
 import axios from 'axios';
 import './login.css'
 import Spinner from '../../components/Spinner/Spinner';
 
-const Login = ({ url }) => {
-  const socket = io(url)
+const Login = ({ socket }) => {
   const [imgSrc, setImgSrc] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isConnected, setIsConnected] = useState(false)

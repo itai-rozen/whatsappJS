@@ -5,12 +5,11 @@ import io from 'socket.io-client'
 import './messages.css'
 import AddMessage from '../../components/AddMessage/AddMessage'
 
-const Messages = ({url}) => {
+const Messages = ({ socket}) => {
   const [messages, setMessages] = useState([])
   const [historyMessages, setHistoryMessages] = useState([])
   const [showAddModal, setShowAddModal] = useState(false)
 
-  const socket = io(url)
   socket.on("connect_error", (err) => {
     console.log(`connect_error due to ${err.message}`);
   });
