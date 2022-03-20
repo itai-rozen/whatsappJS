@@ -5,14 +5,16 @@ import Login from './pages/Login/Login';
 import Messages from './pages/Messages/Messages';
 function App() {
 
-
+  const url = process.env.NODE_ENV === 'production' ?
+                                       'https://we-send-like-crazy.herokuapp.com/':
+                                       'http://localhost:4001'
   return (
     <div className="App">
       <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/messages" element={<Messages />} />
-      </Routes>
+        <Routes>
+          <Route path="/" element={<Login url={url} />} />
+          <Route path="/messages" element={<Messages url={url} />} />
+        </Routes>
       </BrowserRouter>
 
     </div>

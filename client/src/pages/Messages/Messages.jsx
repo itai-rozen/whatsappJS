@@ -5,12 +5,12 @@ import io from 'socket.io-client'
 import './messages.css'
 import AddMessage from '../../components/AddMessage/AddMessage'
 
-const Messages = () => {
+const Messages = ({url}) => {
   const [messages, setMessages] = useState([])
   const [historyMessages, setHistoryMessages] = useState([])
   const [showAddModal, setShowAddModal] = useState(false)
 
-  const socket = io("https://we-send-like-crazy.herokuapp.com/")
+  const socket = io(url)
 
   socket.on('messageQue', data => {
     setMessages(data)

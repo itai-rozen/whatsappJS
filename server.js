@@ -149,7 +149,6 @@ app.post('/newMsg', async (req, res) => {
 
 
 const handleRecipientStack = async () => {
-  console.log('entered stack')
   try {
     const messagesStack = await Message.find().sort({ _id: 1 }).limit(30)
     console.log('messages: ', messagesStack.length)
@@ -168,7 +167,6 @@ const sendIntervaledMessages = async messages => {
     const randNum = Math.floor(Math.random() * 6 + 10)
     await new Promise(resolve => setTimeout(resolve, randNum * 1000))
     sendAutoMsg(message, serializedId)
-    console.log('sending auto message!')
   }
 } catch(err){
   console.log('@sendInterval message: ',err)
@@ -181,7 +179,6 @@ const sendAutoMsg = async (msg, id) => {
   let error = ''
   try {
     const message = await client.sendMessage(id, msg.content)
-    console.log('message: ', message)
   } catch (err) {
     console.log(err)
     error = err

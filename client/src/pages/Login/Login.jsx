@@ -5,13 +5,13 @@ import axios from 'axios';
 import './login.css'
 import Spinner from '../../components/Spinner/Spinner';
 
-const Login = () => {
-
+const Login = ({ url }) => {
+  console.log('url: ',url)
   const [imgSrc, setImgSrc] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
 
-  const socket = io("https://we-send-like-crazy.herokuapp.com/")
+  const socket = io(url)
 
   socket.on('getQr', data => {
     setImgSrc(data)
