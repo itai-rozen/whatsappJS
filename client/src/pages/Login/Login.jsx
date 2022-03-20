@@ -11,7 +11,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
 
-  const socket = io("/")
+  const socket = io("https://we-send-like-crazy.herokuapp.com/")
 
   socket.on('getQr', data => {
     setImgSrc(data)
