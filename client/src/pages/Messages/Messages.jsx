@@ -11,6 +11,9 @@ const Messages = ({url}) => {
   const [showAddModal, setShowAddModal] = useState(false)
 
   const socket = io(url)
+  socket.on("connect_error", (err) => {
+    console.log(`connect_error due to ${err.message}`);
+  });
 
   socket.on('messageQue', data => {
     setMessages(data)

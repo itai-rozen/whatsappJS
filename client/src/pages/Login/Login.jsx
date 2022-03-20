@@ -6,12 +6,14 @@ import './login.css'
 import Spinner from '../../components/Spinner/Spinner';
 
 const Login = ({ url }) => {
-  console.log('url: ',url)
+  const socket = io(url)
   const [imgSrc, setImgSrc] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
-
-  const socket = io(url)
+  
+  socket.on("connect_error", (err) => {
+    console.log(`connect_error due to ${err.message}`);
+  });
 
   socket.on('getQr', data => {
     setImgSrc(data)
