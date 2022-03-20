@@ -10,7 +10,7 @@ const Messages = () => {
   const [historyMessages, setHistoryMessages] = useState([])
   const [showAddModal, setShowAddModal] = useState(false)
 
-  const socket = io('http://localhost:4001/')
+  const socket = io()
 
   socket.on('messageQue', data => {
     setMessages(data)

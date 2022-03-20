@@ -11,7 +11,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
 
-  const socket = io('http://localhost:4001')
+  const socket = io()
 
   socket.on('getQr', data => {
     setImgSrc(data)
