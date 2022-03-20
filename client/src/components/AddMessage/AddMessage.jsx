@@ -3,9 +3,9 @@ import axios from 'axios'
 import './addMessage.css'
 
 const AddMessage = ({ setShowAddModal, getMessages }) => {
-  const [phone, setPhone] = useState('')
-  const [content, setContent] = useState('')
-  const [provider, setProvider] = useState('')
+  const [phone, setPhone] = useState('972524390666')
+  const [content, setContent] = useState('test')
+  const [provider, setProvider] = useState('972506819764')
 
   const createMessage = async e => {
     e.preventDefault()

@@ -3,12 +3,15 @@ const app = express()
 const http = require('http')
 const server = http.createServer(app)
 const qrcode = require('qrcode');
+const path = require('path')
 const cors = require('cors')
 const fs = require('fs');
 const axios = require('axios')
 const mongoose = require('mongoose')
 const cron = require('node-cron')
 const { Server }  = require('socket.io')
+app.use(express.static(path.join(__dirname, 'client/build')));
+
 const io = new Server(server, {
   cors: {
     origin: ['http://localhost:3000']
@@ -39,7 +42,7 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
   client = new Client({authStrategy : new LegacySessionAuth({
     session : sessionData
   })})
-  console.dir(client.options)
+
   startCronJob()
   client.initialize()
 }
@@ -50,12 +53,13 @@ app.get('/is-connected', (req,res) => {
 
 app.get('/connect', (req, res) => {
 
-  console.log('hi /connect')
   client = new Client({
     authStrategy: new LegacySessionAuth({
       session: sessionData
     })
   })
+
+
 
   client.on('authenticated', async (session) => {
     console.log('enetered auth')
@@ -73,7 +77,6 @@ app.get('/connect', (req, res) => {
 
   client.on('qr', qr => {
     // qrcode.generate(qr, { small: true });
-    console.log('qr generated')
     qrcode.toDataURL(qr, (err, src) => {
       io.emit('getQr', src)
     })
@@ -157,6 +160,8 @@ const handleRecipientStack = async () => {
 }
 
 const sendIntervaledMessages = async messages => {
+  try {
+
   for (const message of messages) {
     const numberId = await client.getNumberId(message.phone)
     const serializedId = numberId._serialized
@@ -165,14 +170,20 @@ const sendIntervaledMessages = async messages => {
     sendAutoMsg(message, serializedId)
     console.log('sending auto message!')
   }
+} catch(err){
+  console.log('@sendInterval message: ',err)
+}
+
 }
 
 const sendAutoMsg = async (msg, id) => {
   console.log('@sendAutoMsg func')
   let error = ''
   try {
-    await client.sendMessage(id, msg.content)
+    const message = await client.sendMessage(id, msg.content)
+    console.log('message: ', message)
   } catch (err) {
+    console.log(err)
     error = err
   }
 
@@ -182,6 +193,7 @@ const sendAutoMsg = async (msg, id) => {
   } catch (err) {
     console.log(err)
   }
+
 }
 
 const addToHistoryQue = async (msg, crash_log = '') => {

@@ -40,7 +40,8 @@ const Messages = () => {
 
   const sendMessages = async () => {
     try {
-      await axios.post('/messages', {})
+      const res = await axios.post('/messages', {})
+      console.log(res)
       getMessages()
       getHistory()
     } catch (err) {
