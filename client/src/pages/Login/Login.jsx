@@ -59,7 +59,7 @@ const Login = () => {
   return <div className='login-container'>
     <div className="container">
       <div className="img-container">
-        <img src={imgSrc} />
+        <img src={imgSrc} alt="Qr code" />
       </div>
       <div className="btn-container">
         <button className='connect-btn' disabled={isConnected} onClick={connect} >Connect</button>
