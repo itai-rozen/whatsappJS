@@ -10,7 +10,7 @@ const Messages = () => {
   const [historyMessages, setHistoryMessages] = useState([])
   const [showAddModal, setShowAddModal] = useState(false)
 
-  const socket = io()
+  const socket = io("/")
 
   socket.on('messageQue', data => {
     setMessages(data)
