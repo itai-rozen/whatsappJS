@@ -6,7 +6,6 @@ const qrcode = require('qrcode');
 const path = require('path')
 const cors = require('cors')
 const fs = require('fs');
-const axios = require('axios')
 const mongoose = require('mongoose')
 const cron = require('node-cron')
 const { Server }  = require('socket.io')
@@ -17,6 +16,11 @@ const io = new Server(server, {
     origin: "*",
     methods: ["GET", "POST"],
   }
+})
+
+io.on("connection", socket => {
+  console.log('socket connected')
+  io.on("disconnect", () => console.log('socket disconnected'))
 })
 const Message = require('./model/message.js')
 const History = require('./model/history.js')
