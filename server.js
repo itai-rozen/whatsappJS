@@ -53,7 +53,7 @@ app.get('/is-connected', (req,res) => {
   res.send(fs.existsSync(SESSION_FILE_PATH))
 })
 
-app.get('/connect', (req, res) => {
+app.get('/connect', async (req, res) => {
 
   client = new Client({
     authStrategy: new LegacySessionAuth({
@@ -84,12 +84,12 @@ app.get('/connect', (req, res) => {
   });
 
 
-  client.on('ready', async () => {
-    // startCronJob()
+  client.on('ready', () => {
+    startCronJob()
     io.emit('connectUser', true)
     // res.send('success @ready event')
   });
-  client.initialize();
+  await client.initialize();
   res.send('success @end of connect')
 })
 
