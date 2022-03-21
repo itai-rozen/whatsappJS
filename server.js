@@ -66,8 +66,6 @@ app.get('/connect',  (req, res) => {
     })
   })
 
-
-
   client.on('authenticated', async (session) => {
     try {
       sessionData = session;
@@ -83,6 +81,7 @@ app.get('/connect',  (req, res) => {
 
   client.on('qr', qr => {
     // qrcode.generate(qr, { small: true });
+    res.send('entered qr event')
     qrcode.toDataURL(qr, (err, src) => {
       io.emit('getQr', src)
     })
@@ -95,7 +94,6 @@ app.get('/connect',  (req, res) => {
     // res.send('success @ready event')
   });
   client.initialize();
-  res.send('success @end of connect')
 })
 
 app.get('/disconnect', async (req, res) => {
