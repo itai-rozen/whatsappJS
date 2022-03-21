@@ -10,6 +10,9 @@ const mongoose = require('mongoose')
 const cron = require('node-cron')
 const { Server }  = require('socket.io')
 app.use(express.static(path.join(__dirname, 'client/build')));
+const puppeteer = require('puppeteer')
+puppeteer.launch({ args: ['--no-sandbox', '--disable--gpu', '--disable-setuid-sandbox'] });
+
 
 const io = new Server(server, {
   cors: {
@@ -98,7 +101,7 @@ app.get('/connect',  (req, res) => {
     io.emit('connectUser', true)
   });
   client.initialize();
-  res.send(client)
+  res.send('kill me')
 
 })
 
