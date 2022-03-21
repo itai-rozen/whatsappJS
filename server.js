@@ -64,7 +64,6 @@ app.get('/connect', (req, res) => {
 
 
   client.on('authenticated', async (session) => {
-    console.log('enetered auth')
     try {
       sessionData = session;
       fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {

@@ -25,7 +25,11 @@ const Login = ({ socket }) => {
   const connect = async () => {
     setIsLoading(true)
     try {
-      await axios.get('/connect')
+      await axios.get('/connect', {
+        headers: {
+          "Content-Type" : "application/json"
+        }
+      })
 
     } catch (err) {
       console.log(err)
