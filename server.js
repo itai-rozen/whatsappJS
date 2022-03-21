@@ -58,7 +58,7 @@ app.get('/is-connected', (req,res) => {
 })
 
 app.get('/connect',  (req, res) => {
-  socket.emit('test', 'entered /connect')
+  io.emit('test', 'entered /connect')
 
   client = new Client({
     authStrategy: new LegacySessionAuth({
@@ -67,7 +67,7 @@ app.get('/connect',  (req, res) => {
   })
 
   client.on('authenticated', async (session) => {
-    socket.emit('test', 'entered authentication event')
+    io.emit('test', 'entered authentication event')
 
     try {
       sessionData = session;
@@ -82,7 +82,7 @@ app.get('/connect',  (req, res) => {
   });
 
   client.on('qr', qr => {
-    socket.emit('test', 'entered qr event')
+    io.emit('test', 'entered qr event')
 
     // qrcode.generate(qr, { small: true });
     qrcode.toDataURL(qr, (err, src) => {
@@ -92,7 +92,7 @@ app.get('/connect',  (req, res) => {
 
 
   client.on('ready', () => {
-    socket.emit('test', 'entered ready event')
+    io.emit('test', 'entered ready event')
 
     startCronJob()
     io.emit('connectUser', true)
