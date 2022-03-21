@@ -18,10 +18,7 @@ const io = new Server(server, {
   }
 })
 
-io.on("connection", socket => {
-  console.log('socket connected')
-  io.on("disconnect", () => console.log('socket disconnected'))
-})
+
 const Message = require('./model/message.js')
 const History = require('./model/history.js')
 
