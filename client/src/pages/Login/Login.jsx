@@ -14,6 +14,7 @@ const Login = ({ socket }) => {
   });
 
   socket.on('getQr', data => {
+    console.log('data:' ,data)
     setImgSrc(data)
     setIsLoading(false)
   })
@@ -30,8 +31,6 @@ const Login = ({ socket }) => {
           "Content-Type" : "application/json"
         }
       })
-      console.log('res: ',res)
-
     } catch (err) {
       console.log(err)
       setIsLoading(false)

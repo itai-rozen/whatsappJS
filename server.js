@@ -89,7 +89,7 @@ app.get('/connect',  (req, res) => {
     io.emit('connectUser', true)
     // res.send('success @ready event')
   });
-  // client.initialize();
+  client.initialize();
   res.send('success @end of connect')
 })
 
