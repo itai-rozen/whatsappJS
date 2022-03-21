@@ -49,6 +49,11 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
   client.initialize()
 }
 
+io.on('connection', (socket) => {
+  console.log('Client connected');
+  socket.on('disconnect', () => console.log('Client disconnected'));
+})
+
 app.get('/is-connected', (req,res) => {
   res.send(fs.existsSync(SESSION_FILE_PATH))
 })
