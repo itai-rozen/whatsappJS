@@ -85,7 +85,7 @@ app.get('/connect', (req, res) => {
 
 
   client.on('ready', async () => {
-    startCronJob()
+    // startCronJob()
     io.emit('connectUser', true)
     // res.send('success @ready event')
   });
