@@ -8,7 +8,7 @@ const cors = require('cors')
 const fs = require('fs');
 const mongoose = require('mongoose')
 const cron = require('node-cron')
-const { Server }  = require('socket.io')
+const { Server } = require('socket.io')
 app.use(express.static(path.join(__dirname, 'client/build')));
 const puppeteer = require('puppeteer')
 // puppeteer.launch({ args: });
@@ -35,18 +35,21 @@ const { Client, LegacySessionAuth } = require('whatsapp-web.js');
 const SESSION_FILE_PATH = './session.json';
 
 let sessionData
-let client 
+let client
 let task
 
-
+const clientOpts = {
+  authStrategy: new LegacySessionAuth({
+    session: sessionData
+  }),
+  puppeteer: { args: ['--no-sandbox'] }
+}
 
 // Load the session data if it has been previously saved
 
 if (fs.existsSync(SESSION_FILE_PATH)) {
   sessionData = require(SESSION_FILE_PATH);
-  client = new Client({authStrategy : new LegacySessionAuth({
-    session : sessionData
-  })}, {args:['--no-sandbox']})
+  client = new Client(clientOpts)
   startCronJob()
   client.initialize()
 }
@@ -55,20 +58,13 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => console.log('Client disconnected'));
 })
 
-app.get('/is-connected', (req,res) => {
+app.get('/is-connected', (req, res) => {
   res.send(fs.existsSync(SESSION_FILE_PATH))
 })
 
-app.get('/connect',  (req, res) => {
-  
-  client = new Client({
-    authStrategy: new LegacySessionAuth({
-      session: sessionData
-    }, {args:['--no-sandbox']})
-    
-  })
-  
+app.get('/connect', (req, res) => {
 
+  client = new Client(clientOpts)
 
   client.on('authenticated', async (session) => {
     io.emit('test', 'entered authentication event')
@@ -149,7 +145,7 @@ app.post('/messages', async (req, res) => {
 
 // for testing
 app.post('/newMsg', async (req, res) => {
-  
+
   const { body } = req
   try {
     const message = new Message(body)
@@ -175,16 +171,16 @@ const handleRecipientStack = async () => {
 const sendIntervaledMessages = async messages => {
   try {
 
-  for (const message of messages) {
-    const numberId = await client.getNumberId(message.phone)
-    const serializedId = numberId._serialized
-    const randNum = Math.floor(Math.random() * 6 + 10)
-    await new Promise(resolve => setTimeout(resolve, randNum * 1000))
-    sendAutoMsg(message, serializedId)
+    for (const message of messages) {
+      const numberId = await client.getNumberId(message.phone)
+      const serializedId = numberId._serialized
+      const randNum = Math.floor(Math.random() * 6 + 10)
+      await new Promise(resolve => setTimeout(resolve, randNum * 1000))
+      sendAutoMsg(message, serializedId)
+    }
+  } catch (err) {
+    console.log('@sendInterval message: ', err)
   }
-} catch(err){
-  console.log('@sendInterval message: ',err)
-}
 
 }
 
