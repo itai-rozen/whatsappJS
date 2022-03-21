@@ -11,12 +11,12 @@ const cron = require('node-cron')
 const { Server }  = require('socket.io')
 app.use(express.static(path.join(__dirname, 'client/build')));
 
-// const io = new Server(server, {
-//   cors: {
-//     origin: "*",
-//     methods: ["GET", "POST"],
-//   }
-// })
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  }
+})
 
 
 const Message = require('./model/message.js')
@@ -63,7 +63,6 @@ app.get('/connect',  (req, res) => {
       session: sessionData
     })
   })
-  io.emit('test', `client: ${client}`)
   
 
 
@@ -97,10 +96,9 @@ app.get('/connect',  (req, res) => {
 
     startCronJob()
     io.emit('connectUser', true)
-    // res.send('success @ready event')
   });
   client.initialize();
-  res.end()
+  res.send(client)
 
 })
 
