@@ -11,12 +11,12 @@ const cron = require('node-cron')
 const { Server }  = require('socket.io')
 app.use(express.static(path.join(__dirname, 'client/build')));
 
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  }
-})
+// const io = new Server(server, {
+//   cors: {
+//     origin: "*",
+//     methods: ["GET", "POST"],
+//   }
+// })
 
 
 const Message = require('./model/message.js')
@@ -44,7 +44,6 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
   client = new Client({authStrategy : new LegacySessionAuth({
     session : sessionData
   })})
-
   startCronJob()
   client.initialize()
 }
@@ -58,13 +57,15 @@ app.get('/is-connected', (req,res) => {
 })
 
 app.get('/connect',  (req, res) => {
-  io.emit('test', 'entered /connect')
-
+  
   client = new Client({
     authStrategy: new LegacySessionAuth({
       session: sessionData
     })
   })
+  io.emit('test', `client: ${client}`)
+  
+
 
   client.on('authenticated', async (session) => {
     io.emit('test', 'entered authentication event')
