@@ -50,7 +50,7 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 }
 
 io.on('connection', (socket) => {
-  console.log('Client connected');
+  socket.emit('test', 'test')
   socket.on('disconnect', () => console.log('Client disconnected'));
 })
 
@@ -81,7 +81,6 @@ app.get('/connect',  (req, res) => {
 
   client.on('qr', qr => {
     // qrcode.generate(qr, { small: true });
-    res.send('entered qr event')
     qrcode.toDataURL(qr, (err, src) => {
       io.emit('getQr', src)
     })
@@ -94,6 +93,8 @@ app.get('/connect',  (req, res) => {
     // res.send('success @ready event')
   });
   client.initialize();
+  res.end()
+
 })
 
 app.get('/disconnect', async (req, res) => {

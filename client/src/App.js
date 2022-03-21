@@ -21,6 +21,7 @@ function App() {
     rejectUnauthorized: false
   })
 
+  socket.on('test', data => console.log('data:', data))
 
   return (
     <div className="App">
