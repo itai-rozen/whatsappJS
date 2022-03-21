@@ -50,7 +50,6 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 }
 
 io.on('connection', (socket) => {
-  socket.emit('test', 'test')
   socket.on('disconnect', () => console.log('Client disconnected'));
 })
 
@@ -59,6 +58,7 @@ app.get('/is-connected', (req,res) => {
 })
 
 app.get('/connect',  (req, res) => {
+  socket.emit('test', 'entered /connect')
 
   client = new Client({
     authStrategy: new LegacySessionAuth({
@@ -67,6 +67,8 @@ app.get('/connect',  (req, res) => {
   })
 
   client.on('authenticated', async (session) => {
+    socket.emit('test', 'entered authentication event')
+
     try {
       sessionData = session;
       fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
@@ -80,6 +82,8 @@ app.get('/connect',  (req, res) => {
   });
 
   client.on('qr', qr => {
+    socket.emit('test', 'entered qr event')
+
     // qrcode.generate(qr, { small: true });
     qrcode.toDataURL(qr, (err, src) => {
       io.emit('getQr', src)
@@ -88,6 +92,8 @@ app.get('/connect',  (req, res) => {
 
 
   client.on('ready', () => {
+    socket.emit('test', 'entered ready event')
+
     startCronJob()
     io.emit('connectUser', true)
     // res.send('success @ready event')
