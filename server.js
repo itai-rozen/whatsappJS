@@ -31,6 +31,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 const { Client, LegacySessionAuth } = require('whatsapp-web.js');
 
+
 // Path where the session data will be stored
 const SESSION_FILE_PATH = './session.json';
 
