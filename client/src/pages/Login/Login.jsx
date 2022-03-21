@@ -31,6 +31,7 @@ const Login = ({ socket }) => {
           "Content-Type" : "application/json"
         }
       })
+      console.log('response: ',res)
     } catch (err) {
       console.log(err)
       setIsLoading(false)
