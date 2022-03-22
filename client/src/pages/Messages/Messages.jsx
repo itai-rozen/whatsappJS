@@ -51,6 +51,15 @@ const Messages = ({ socket}) => {
     }
   }
 
+  const deleteMessage = async id => {
+    try {
+      await axios.post('/delete-message', {id})
+      getMessages()
+    } catch(err){
+      console.log(err)
+    }
+  }
+
   const controlCronJob = async command => {
     try {
       const res = await axios.get(`/${command}-cron`)
@@ -73,12 +82,14 @@ const Messages = ({ socket}) => {
         <p>Phone</p>
         <p>Content</p>
         <p>Provider</p>
+        <p></p>
       </div>
         {messages.map(msg => {
           return <div className='message' key={msg._id}>
             <p> {msg.phone}</p>
             <p> {msg.content}</p>
             <p> {msg.provider}</p>
+            <p onClick={() => deleteMessage(msg._id)}> 🗑️</p>
           </div>
         })}
       </div>

@@ -119,7 +119,7 @@ app.get('/disconnect', async (req, res) => {
 
 app.get('/messages', async (req, res) => {
   try {
-    const messages = await Message.find()
+    const messages = await Message.find().sort({_id: 1}).limit(50)
     res.send(messages)
   } catch (err) {
     res.status(400).send(err)
@@ -128,7 +128,7 @@ app.get('/messages', async (req, res) => {
 
 app.get('/history', async (req, res) => {
   try {
-    const history = await History.find().sort({ _id: -1 })
+    const history = await History.find().sort({ _id: -1 }).limit(50)
     res.send(history)
   } catch (err) {
     res.status(400).send(err)
@@ -144,9 +144,17 @@ app.post('/messages', async (req, res) => {
   res.end()
 })
 
+app.post('/delete-message',  async (req,res) => {
+  const { id } = await req.body
+  try {
+    await Message.deleteOne({_id: id})
+  } catch(err) {
+    console.log(err)
+  }
+})
+
 // for testing
 app.post('/newMsg', async (req, res) => {
-
   const { body } = req
   try {
     const message = new Message(body)
