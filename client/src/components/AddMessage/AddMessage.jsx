@@ -5,15 +5,16 @@ import './addMessage.css'
 const AddMessage = ({ setShowAddModal, getMessages }) => {
   const [phone, setPhone] = useState('')
   const [content, setContent] = useState('death to all humans! 🤖')
-  const [provider, setProvider] = useState('972506819764')
+  const [provider, setProvider] = useState('0506819764')
 
   const createMessage = async e => {
     e.preventDefault()
+    
     try {
       await axios.post('/newMsg', {
-        phone,
+        phone : phone.charAt(0) === '0'? `972${phone.slice(1)}` : phone,
         content, 
-        provider
+        provider: provider.charAt(0) === '0'?`972${provider.slice(1)}` : provider
       })
       getMessages()
       setShowAddModal(false)

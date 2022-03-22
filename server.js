@@ -142,7 +142,6 @@ app.post('/messages', async (req, res) => {
 })
 
 app.post('/delete-message',  async (req,res) => {
-  console.log(req.body)
   const { id } = await req.body
   try {
     await Message.deleteOne({_id: id})

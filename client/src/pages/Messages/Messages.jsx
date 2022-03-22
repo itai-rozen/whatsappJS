@@ -78,7 +78,7 @@ const Messages = ({ socket}) => {
         <p>Content</p>
         <p>Provider</p>
         <p>created at</p>
-        <p>🗑️</p>
+        <p></p>
       </div>
         {messages.map(msg => {
           return <div className='message' key={msg._id}>
@@ -105,7 +105,7 @@ const Messages = ({ socket}) => {
             <p> {msg.phone}</p>
             <p> {msg.content}</p>
             <p> {msg.provider}</p>
-            <p> {moment(msg.createdAt).format('D/M h:mma') || ''} </p>
+            <p> {msg.createdAt && moment(msg.createdAt).format('D/M h:mma') } </p>
             <p> {msg.crash_log || " "}</p>
           </div>
         })}
