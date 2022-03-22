@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
+import moment from 'moment'
 import './messages.css'
 import AddMessage from '../../components/AddMessage/AddMessage'
 import Cron from '../../components/Cron/Cron'
@@ -9,8 +10,6 @@ const Messages = ({ socket}) => {
   const [messages, setMessages] = useState([])
   const [historyMessages, setHistoryMessages] = useState([])
   const [showAddModal, setShowAddModal] = useState(false)
-  const [alert,setAlert] = useState('')
-  const [lastCron, setLastCron] = useState('')
 
   socket.on("connect_error", (err) => {
     console.log(`connect_error due to ${err.message}`);
@@ -78,14 +77,16 @@ const Messages = ({ socket}) => {
         <p>Phone</p>
         <p>Content</p>
         <p>Provider</p>
-        <p></p>
+        <p>created at</p>
+        <p>🗑️</p>
       </div>
         {messages.map(msg => {
           return <div className='message' key={msg._id}>
             <p> {msg.phone}</p>
             <p> {msg.content}</p>
             <p> {msg.provider}</p>
-            <p onClick={() => deleteMessage(msg._id)}> 🗑️</p>
+            <p>{moment(msg.createdAt).format('d/m h:mma')}</p>
+            <p className='delete-msg' onClick={() => deleteMessage(msg._id)}> 🗑️</p>
           </div>
         })}
       </div>
@@ -95,13 +96,16 @@ const Messages = ({ socket}) => {
         <p>Phone</p>
         <p>Content</p>
         <p>Provider</p>
+        <p>created at</p>
         <p>Crash Log</p>
+
       </div>
         {historyMessages.map(msg => {
           return <div className='message' key={msg._id}>
             <p> {msg.phone}</p>
             <p> {msg.content}</p>
             <p> {msg.provider}</p>
+            <p> {moment(msg.createdAt).format('D/M h:mma') || ''} </p>
             <p> {msg.crash_log || " "}</p>
           </div>
         })}

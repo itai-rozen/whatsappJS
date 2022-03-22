@@ -32,6 +32,14 @@
 .btn-container {
   height: 15vh;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
 }
 
+.delete-msg {
+  cursor: pointer;
+  opacity: 0;
+}
+
+.message:hover .delete-msg {
+  opacity: 1;
+}

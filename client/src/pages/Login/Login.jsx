@@ -14,7 +14,7 @@ const Login = ({ socket }) => {
   });
 
   socket.on('getQr', data => {
-    console.log('data:' ,data)
+    // console.log('data:' ,data)
     setImgSrc(data)
     setIsLoading(false)
   })

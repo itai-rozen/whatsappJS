@@ -17,6 +17,7 @@ a {
   display: block;
   text-decoration: none;
   font-size: 1.4rem;
+  margin: auto 15px;
   padding: 5px 10px;
   border-bottom: 2px solid black;
   border-left: 2px solid black;
@@ -28,7 +29,7 @@ button {
   cursor: pointer;
   font-size: 1.7rem;
   padding: 10px 20px;
-  margin: 15px auto;
+  margin: 15px 10px;
   border-radius: 5px;
   border: 2px solid #780000;
   background-color: #982649;

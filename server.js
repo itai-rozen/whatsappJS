@@ -142,12 +142,14 @@ app.post('/messages', async (req, res) => {
 })
 
 app.post('/delete-message',  async (req,res) => {
+  console.log(req.body)
   const { id } = await req.body
   try {
     await Message.deleteOne({_id: id})
   } catch(err) {
     console.log(err)
   }
+  res.end()
 })
 
 // for testing
@@ -185,6 +187,7 @@ app.get('/stop-cron', (req, res) => {
 })
 
 const handleRecipientStack = async () => {
+  io.emit('cronDate', new Date())
   try {
     const messagesStack = await Message.find().sort({ _id: 1 }).limit(30)
     console.log('messages: ', messagesStack.length)
