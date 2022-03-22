@@ -17,7 +17,7 @@ const historySchema = new mongoose.Schema({
     default: ''
   }
 
-})
+}, { timestamps: true })
 
 const History = mongoose.model('History', historySchema)
 
