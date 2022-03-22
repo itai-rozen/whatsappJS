@@ -31,5 +31,7 @@
 
 .btn-container {
   height: 15vh;
+  display: flex;
+  justify-content: space-around;
 }
 

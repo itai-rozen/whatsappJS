@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
-import io from 'socket.io-client'
 import './messages.css'
 import AddMessage from '../../components/AddMessage/AddMessage'
+import Cron from '../../components/Cron/Cron'
 
 const Messages = ({ socket}) => {
   const [messages, setMessages] = useState([])
   const [historyMessages, setHistoryMessages] = useState([])
   const [showAddModal, setShowAddModal] = useState(false)
+  const [alert,setAlert] = useState('')
+  const [lastCron, setLastCron] = useState('')
 
   socket.on("connect_error", (err) => {
     console.log(`connect_error due to ${err.message}`);
@@ -60,13 +62,7 @@ const Messages = ({ socket}) => {
     }
   }
 
-  const controlCronJob = async command => {
-    try {
-      const res = await axios.get(`/${command}-cron`)
-    } catch (err){
-      console.log(err)
-    }
-  }
+
 
   useEffect(() => {
     getMessages()
@@ -112,10 +108,10 @@ const Messages = ({ socket}) => {
       </div>
     </div>
     <div className="btn-container">
+    <Cron socket={socket} />
     <button onClick={() => setShowAddModal(true)}>add message</button>
     <button onClick={sendMessages} >send messages</button>
-    <button onClick={() => controlCronJob('start')}>Start cron job</button>
-    <button onClick={() => controlCronJob('stop')}>Stop cron job</button>
+
     <Link to="/">home</Link>
     </div>
   </div>

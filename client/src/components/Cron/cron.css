@@ -1,0 +1,14 @@
+.cron-container {
+  /* width: 10%; */
+  background-color: black;
+  color: white;
+  padding: 0 5px;
+  width: 30%;
+}
+.cron-container button {
+  font-size: 1.3rem;
+  background-color: unset;
+  border: unset;
+  padding: unset;
+  margin: 0 5px;
+}

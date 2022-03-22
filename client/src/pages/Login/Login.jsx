@@ -71,7 +71,7 @@ const Login = ({ socket }) => {
         <button className='connect-btn' disabled={!isConnected} onClick={disconnect}>Disconnect</button>
       </div>
       {isLoading && <Spinner />}
-      {isConnected && <Link to="/messages">your messages</Link>}
+      {isConnected && <Link to="/dashboard">Dashboard</Link>}
     </div>
   </div>
 }

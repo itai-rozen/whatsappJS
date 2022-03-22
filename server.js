@@ -55,9 +55,6 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
   client.initialize()
 }
 
-io.on('connection', (socket) => {
-  socket.on('disconnect', () => console.log('Client disconnected'));
-})
 
 app.get('/is-connected', (req, res) => {
   res.send(fs.existsSync(SESSION_FILE_PATH))
@@ -168,6 +165,7 @@ app.post('/newMsg', async (req, res) => {
 app.get('/start-cron', (req, res) => {
   try {
     task.start()
+    console.log('cron job started')
     res.send('cron job started successfully')
   } catch (err) {
     console.log(err)
@@ -178,6 +176,7 @@ app.get('/start-cron', (req, res) => {
 app.get('/stop-cron', (req, res) => {
   try {
     task.stop()
+    console.log('cron job stopped')
     res.send('cron job stopped successfully')
   } catch (err) {
     console.log(err)
