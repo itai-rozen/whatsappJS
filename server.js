@@ -128,7 +128,7 @@ app.get('/messages', async (req, res) => {
 
 app.get('/history', async (req, res) => {
   try {
-    const history = await History.find()
+    const history = await History.find().sort({ _id: -1 })
     res.send(history)
   } catch (err) {
     res.status(400).send(err)
@@ -157,7 +157,25 @@ app.post('/newMsg', async (req, res) => {
   }
 })
 
+app.get('/start-cron', (req, res) => {
+  try {
+    task.start()
+    res.send('cron job started successfully')
+  } catch (err) {
+    console.log(err)
+    res.send('error at starting cron job')
+  }
+})
 
+app.get('/stop-cron', (req, res) => {
+  try {
+    task.stop()
+    res.send('cron job stopped successfully')
+  } catch (err) {
+    console.log(err)
+    res.send('error at stopping cron job')
+  }
+})
 
 const handleRecipientStack = async () => {
   try {

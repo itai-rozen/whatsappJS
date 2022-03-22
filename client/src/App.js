@@ -28,7 +28,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login url={url} socket={socket} />} />
-          <Route path="/messages" element={<Messages url={url} socket={socket} />} />
+          <Route path="/dashboard" element={<Messages url={url} socket={socket} />} />
         </Routes>
       </BrowserRouter>
 
