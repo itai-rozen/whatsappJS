@@ -51,6 +51,14 @@ const Messages = ({ socket}) => {
     }
   }
 
+  const controlCronJob = async command => {
+    try {
+      const res = await axios.get(`/${command}-cron`)
+    } catch (err){
+      console.log(err)
+    }
+  }
+
   useEffect(() => {
     getMessages()
     getHistory()
@@ -95,6 +103,8 @@ const Messages = ({ socket}) => {
     <div className="btn-container">
     <button onClick={() => setShowAddModal(true)}>add message</button>
     <button onClick={sendMessages} >send messages</button>
+    <button onClick={() => controlCronJob('start')}>Start cron job</button>
+    <button onClick={() => controlCronJob('stop')}>Stop cron job</button>
     <Link to="/">home</Link>
     </div>
   </div>
