@@ -1,0 +1,9 @@
+.login-container {
+  background-color: black;
+  height: 100vh;
+}
+
+.login {
+  background-color: white;
+  padding: 40px;
+}

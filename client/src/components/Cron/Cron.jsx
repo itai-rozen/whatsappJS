@@ -20,7 +20,7 @@ const Cron = ({ socket }) => {
       console.log(err)
     }
   }
-
+  
   return <div className='cron-container'>
     <h4>Cron job controller</h4>
     <p>current status: {isCronRunning ? <span>Running</span> : <span>Not running</span> }</p>

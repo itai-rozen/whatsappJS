@@ -10,7 +10,7 @@ const mongoose = require('mongoose')
 const cron = require('node-cron')
 const { Server } = require('socket.io')
 app.use(express.static(path.join(__dirname, 'client/build')));
-const puppeteer = require('puppeteer')
+const bcrypt = require('bcrypt')
 // puppeteer.launch({ args: });
 
 
@@ -34,10 +34,13 @@ const { Client, LegacySessionAuth } = require('whatsapp-web.js');
 
 // Path where the session data will be stored
 const SESSION_FILE_PATH = './session.json';
+const TOKEN_FILE_PATH = './token.json'
 
 let sessionData
 let client
 let task
+
+
 
 const clientOpts = {
   authStrategy: new LegacySessionAuth({
@@ -54,6 +57,7 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
   startCronJob()
   client.initialize()
 }
+
 
 
 app.get('/is-connected', (req, res) => {
@@ -184,6 +188,48 @@ app.get('/stop-cron', (req, res) => {
     res.send('error at stopping cron job')
   }
 })
+
+const tokenManager = () => {
+  const tokenData = require(TOKEN_FILE_PATH)
+  const { token, created_at } = tokenData
+  const createTokenPayload = () => {
+   const randomStr =  Math.random().toString(36).substring(2);
+   const payloadToken = randomStr + randomStr
+   const payload = { token: payloadToken, created_at: Math.round(new Date().getTime() / 1000) }
+   fs.writeFileSync(TOKEN_FILE_PATH, JSON.stringify(payload))
+   return payload
+  }
+  let returnedPayload
+  switch (created_at) {
+    case null:
+    returnedPayload =  createTokenPayload();
+    case (Math.round(new Date().getTime() / 1000) - created_at > 6.048e+8) :
+    returnedPayload =  createTokenPayload();
+  
+    default:
+    returnedPayload = tokenData
+      break;
+  }
+  console.log('returned payload:' , returnedPayload)
+  return returnedPayload.token
+}
+tokenManager()
+app.post('/login', async (req,res) => {
+  const { password } = req.body
+  console.log('body: ',req.body)
+  const token = tokenManager()
+  console.log('token: ',token)
+  try {
+    const isValid = await bcrypt.compare(password, process.env.LOGIN_PASS)  
+    console.log('is valid? ',isValid)
+    if (isValid) res.status(200).send(token).json()
+    else throw Error('login failed. invalid password')
+  }catch(err){
+    res.status(400).send('no')
+  }
+})
+
+
 
 const handleRecipientStack = async () => {
   io.emit('cronDate', new Date())
