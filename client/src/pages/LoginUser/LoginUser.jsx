@@ -3,13 +3,16 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import './loginUser.css'
 
-const LoginUser = ({ setIsApproved }) => {
+const LoginUser = ({ setIsApproved, setToken}) => {
   const [password, setPassword]  = useState('')
 
-  const login = () => {
+  const login = async () => {
     try {
       const res = await axios.post('/login', {password})
-      
+      if(res.data?.tokenstring){
+        setIsApproved(true)
+        setToken(res.data.tokenstring)
+      }
     }catch(err){
       console.log(err)
     }

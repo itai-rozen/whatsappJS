@@ -65,7 +65,9 @@ app.get('/is-connected', (req, res) => {
 })
 
 app.get('/connect', (req, res) => {
-
+  if(req.headers.authorization !== tokenManager()) {
+    res.status(401).send('unauthorized')
+  }
   client = new Client(clientOpts)
 
   client.on('authenticated', async (session) => {
@@ -106,6 +108,9 @@ app.get('/connect', (req, res) => {
 
 app.get('/disconnect', async (req, res) => {
   try {
+    if(req.headers.authorization !== tokenManager()) {
+      res.status(401).send('unauthorized')
+    }
     fs.unlinkSync(SESSION_FILE_PATH)
     await client.logout()
     client = ''
@@ -120,6 +125,9 @@ app.get('/disconnect', async (req, res) => {
 
 app.get('/messages', async (req, res) => {
   try {
+    if(req.headers.authorization !== tokenManager()) {
+      res.status(401).send('unauthorized')
+    }
     const messages = await Message.find().sort({_id: 1}).limit(50)
     res.send(messages)
   } catch (err) {
@@ -129,6 +137,9 @@ app.get('/messages', async (req, res) => {
 
 app.get('/history', async (req, res) => {
   try {
+    if(req.headers.authorization !== tokenManager()) {
+      res.status(401).send('unauthorized')
+    }
     const history = await History.find().sort({ _id: -1 }).limit(50)
     res.send(history)
   } catch (err) {
@@ -216,13 +227,13 @@ const tokenManager = () => {
 tokenManager()
 app.post('/login', async (req,res) => {
   const { password } = req.body
-  console.log('body: ',req.body)
+  
   const token = tokenManager()
   console.log('token: ',token)
   try {
     const isValid = await bcrypt.compare(password, process.env.LOGIN_PASS)  
     console.log('is valid? ',isValid)
-    if (isValid) res.status(200).send(token).json()
+    if (isValid) res.status(200).send({tokenstring:token}).json()
     else throw Error('login failed. invalid password')
   }catch(err){
     res.status(400).send('no')

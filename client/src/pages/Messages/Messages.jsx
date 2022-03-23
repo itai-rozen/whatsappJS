@@ -6,7 +6,7 @@ import './messages.css'
 import AddMessage from '../../components/AddMessage/AddMessage'
 import Cron from '../../components/Cron/Cron'
 
-const Messages = ({ socket}) => {
+const Messages = ({ socket,token}) => {
   const [messages, setMessages] = useState([])
   const [historyMessages, setHistoryMessages] = useState([])
   const [showAddModal, setShowAddModal] = useState(false)
@@ -25,7 +25,7 @@ const Messages = ({ socket}) => {
 
   const getHistory = async () => {
     try {
-      const { data } = await axios.get('/history')
+      const { data } = await axios.get('/history',{headers:{'Authorization': token}})
       setHistoryMessages(data)
     } catch (err) {
       console.log(err)

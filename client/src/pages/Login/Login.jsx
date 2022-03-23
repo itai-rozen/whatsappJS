@@ -4,7 +4,7 @@ import axios from 'axios';
 import './login.css'
 import Spinner from '../../components/Spinner/Spinner';
 
-const Login = ({ socket }) => {
+const Login = ({ socket,token }) => {
   const [imgSrc, setImgSrc] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
@@ -28,7 +28,8 @@ const Login = ({ socket }) => {
     try {
       const res = await axios.get('/connect', {
         headers: {
-          "Content-Type" : "application/json"
+          "Content-Type" : "application/json",
+          "Authorization": token
         }
       })
       console.log('response: ',res)

@@ -8,6 +8,7 @@ import LoginUser from './pages/LoginUser/LoginUser';
 
 function App() {
   const [isApproved,setIsApproved] = useState(false)
+  const [token,setToken] = useState(undefined)
   const url = process.env.NODE_ENV === 'production' ?
   '/':
   'http://localhost:4001'
@@ -27,14 +28,14 @@ function App() {
   return (
     <div className="App">
 {
-  isApproved ?     
+  isApproved&&token ?     
  <BrowserRouter>
         <Routes>
-          <Route path="/connect" element={<Login url={url} socket={socket} />} />
-          <Route path="/dashboard" element={<Messages url={url} socket={socket} />} />
+          <Route path="/" element={<Login url={url} socket={socket} token={token} />} />
+          <Route path="/dashboard" element={<Messages url={url} socket={socket} token={token} />} />
         </Routes>
       </BrowserRouter> :
-      <LoginUser setIsApproved={setIsApproved} />
+      <LoginUser setIsApproved={setIsApproved} setToken={setToken} />
 }
 
     </div>
