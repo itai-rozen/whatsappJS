@@ -123,21 +123,26 @@ app.get('/disconnect', async (req, res) => {
   }
 })
 
-app.get('/messages', async (req, res) => {
+app.post('/messages', async (req, res) => {
+  const { phone = "", content = "", limit = 10, page } = req.body
   try {
     if(req.headers.authorization !== tokenManager()) {
       res.status(401).send('unauthorized')
     }
-    const messages = await Message.find().sort({_id: 1}).limit(50)
-    res.send(messages)
+    const messages = await Message      
+    .find({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
+    .sort({ _id: 1 })
+    .limit(limit)
+    .skip((page-1) * limit)
+    const count = await Message.count({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
+    res.status(200).send({messages, count, pages: Math.ceil(count/limit) })
   } catch (err) {
     res.status(400).send(err)
   }
 })
 
 app.post('/history', async (req, res) => {
-  const { phone = "", content = "", limit = 20, page } = req.body
-  console.log('pagae: ', page)
+  const { phone = "", content = "", limit = 10, page } = req.body
   try {
     if(req.headers.authorization !== tokenManager()) {
       res.status(401).send('unauthorized')
@@ -147,8 +152,8 @@ app.post('/history', async (req, res) => {
       .sort({ _id: -1 })
       .limit(limit)
       .skip((page-1) * limit)
-    const count = await History.count({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
-    res.status(200).send({messages: history, count, pages: Math.ceil(count/limit) })
+      const count = await History.count({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
+      res.status(200).send({messages: history, count, pages: Math.ceil(count/limit) })
   } catch (err) {
     console.log(err)
     res.status(400).send(err)
@@ -157,8 +162,8 @@ app.post('/history', async (req, res) => {
 
 
 // for testing
-app.post('/messages', async (req, res) => {
-  console.log('POST /messages')
+app.post('/send-messages', async (req, res) => {
+  console.log('POST /send-messages')
   const oldest30Messages = await Message.find().sort({ _id: 1 }).limit(1)
   sendIntervaledMessages(oldest30Messages)
   res.end()
@@ -334,7 +339,8 @@ const deleteFromMessagesQue = async id => {
   try {
     await Message.deleteOne({ _id: id })
     const messages = await Message.find().sort({_id: 1}).limit(50)
-    io.emit('messageQue', {messages:messages})
+    const count = await Message.countDocuments()
+    io.emit('messageQue', {messages:messages, count})
   } catch (err) {
     console.log(err)
   }

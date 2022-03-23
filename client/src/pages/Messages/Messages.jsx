@@ -11,7 +11,14 @@ import Spinner from '../../components/Spinner/Spinner'
 
 const Messages = ({ socket, token }) => {
   const [isLoading, setIsLoading] = useState(false)
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState({
+    messages: [],
+    count: 0,
+    pages: 1,
+    currPage: 1,
+    phoneQuery: '',
+    contentQuery: ''
+  })
   const [historyMessages, setHistoryMessages] = useState({
     messages: [],
     count: 0,
@@ -29,12 +36,27 @@ const Messages = ({ socket, token }) => {
   });
 
   socket.on('messageQue', data => {
-    setMessages(data)
+    setMessages({ ...messages, messages: data.messages, count: data.count })
   })
 
   socket.on('historyQue', data => {
     setHistoryMessages({ ...historyMessages, messages: data.messages, count: data.count })
   })
+
+  const getMessages = async () => {
+    try {
+      const { data } = await axios
+        .post('/messages', {
+          phone: messages.phoneQuery,
+          content: messages.contentQuery,
+          limit: QUERIES_PER_PAGE,
+          page: messages.currPage
+        }, { headers: { 'Authorization': token } })
+      setMessages({ ...messages, messages: data.messages, count: data.count, pages: data.pages })
+    } catch (err) {
+      console.log(err)
+    }
+  }
 
   const getHistory = async () => {
     setIsLoading(true)
@@ -46,7 +68,6 @@ const Messages = ({ socket, token }) => {
           limit: QUERIES_PER_PAGE,
           page: historyMessages.currPage
         }, { headers: { 'Authorization': token } })
-      console.log('data history: ', data)
       setHistoryMessages({ ...historyMessages, messages: data.messages, count: data.count, pages: data.pages })
       setIsLoading(false)
     } catch (err) {
@@ -55,18 +76,11 @@ const Messages = ({ socket, token }) => {
     }
   }
 
-  const getMessages = async () => {
-    try {
-      const { data } = await axios.get('/messages', { headers: { 'Authorization': token } })
-      setMessages(data)
-    } catch (err) {
-      console.log(err)
-    }
-  }
+
 
   const sendMessages = async () => {
     try {
-      const res = await axios.post('/messages', {}, { headers: { 'Authorization': token } })
+      const res = await axios.post('/send-messages', {}, { headers: { 'Authorization': token } })
       console.log(res)
       getMessages()
       getHistory()
@@ -77,7 +91,7 @@ const Messages = ({ socket, token }) => {
 
   const deleteMessage = async id => {
     try {
-      await axios.post('/delete-message', { headers: { 'Authorization': token }, body: { id } })
+      await axios.post('/delete-message',{ id }, { headers: { 'Authorization': token }  })
       getMessages()
     } catch (err) {
       console.log(err)
@@ -96,7 +110,11 @@ const Messages = ({ socket, token }) => {
       <div className="all-messages">
         <div className="messages que">
           <h2>Messages que</h2>
-          <SearchBar />
+          <SearchBar
+            messages={messages}
+            setMessages={setMessages}
+            getMessages={getMessages}
+          />
           <div className="headers">
             <p>Phone</p>
             <p>Content</p>
@@ -104,7 +122,7 @@ const Messages = ({ socket, token }) => {
             <p>created at</p>
             <p></p>
           </div>
-          {messages.map(msg => {
+          {messages.messages?.map(msg => {
             return <div className='message' key={msg._id}>
               <p> {msg.phone}</p>
               <p> {msg.content}</p>
@@ -113,12 +131,21 @@ const Messages = ({ socket, token }) => {
               <p className='delete-msg' onClick={() => deleteMessage(msg._id)}> 🗑️</p>
             </div>
           })}
+          <div className="page-bar">
+            <PageBar
+              setMessages={setMessages}
+              messages={messages}
+              getMessages={getMessages}
+            />
+          </div>
         </div>
         <div className="history que">
           <h2>History que</h2>
-          <SearchBar messages={historyMessages}
+          <SearchBar
+            messages={historyMessages}
             setMessages={setHistoryMessages}
-            getMessages={getHistory} />
+            getMessages={getHistory}
+          />
           <div className="headers">
             <p>Phone</p>
             <p>Content</p>
@@ -136,11 +163,13 @@ const Messages = ({ socket, token }) => {
               <p> {msg.crash_log || " "}</p>
             </div>
           })}
-          <PageBar
-            setMessages={setHistoryMessages}
-            messages={historyMessages}
-            getMessages={getHistory}
-          />
+          <div className="page-bar">
+            <PageBar
+              setMessages={setHistoryMessages}
+              messages={historyMessages}
+              getMessages={getHistory}
+            />
+          </div>
         </div>
       </div>
       <div className="btn-container">

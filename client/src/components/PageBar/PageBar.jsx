@@ -20,8 +20,8 @@ const PageBar = ({ messages, setMessages, getMessages }) => {
 
   return <div className="pages-container">
     <button disabled={messages.currPage === 1} onClick={() => updatePage(-1)}>&lt;&lt;</button>
-    <p>{messages.currPage} of {messages.pages}</p>
-    <button disabled={messages.currPage === messages.pages} onClick={() => updatePage(1)}>&gt;&gt;</button>
+    <p>{messages.currPage} of {messages.pages || 1}</p>
+    <button disabled={messages.currPage >= messages.pages} onClick={() => updatePage(1)}>&gt;&gt;</button>
   </div>
 }
 

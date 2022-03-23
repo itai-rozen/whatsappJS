@@ -20,6 +20,7 @@
   height: 85vh;
   overflow-y: auto;
   border: 3px solid black;
+  position: relative;
 }
 .history p {
   width: 25%;
@@ -44,4 +45,10 @@
 
 .message:hover .delete-msg {
   opacity: 1;
+}
+
+.page-bar {
+  position: absolute;
+  bottom: 5px;
+  width: 100%;
 }

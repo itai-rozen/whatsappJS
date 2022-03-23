@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
 import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
 import './loginUser.css'
 
 const LoginUser = ({ setIsApproved, setToken}) => {
-  const [password, setPassword]  = useState('cTs4W`-eV4]FeZK`mr!_G9()9W2syB_T')
+  const [password, setPassword]  = useState('')
 
   const login = async () => {
     try {
