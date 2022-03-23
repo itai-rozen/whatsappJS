@@ -3,7 +3,7 @@ import axios from 'axios'
 import moment from 'moment'
 import './cron.css'
 
-const Cron = ({ socket }) => {
+const Cron = ({ socket, token }) => {
 
   const [isCronRunning, setIsCronRunning] = useState(true)
   const [lastCronDateTime, setLastCronDateTime] = useState('no available data')
@@ -12,9 +12,10 @@ const Cron = ({ socket }) => {
     const dateStr = moment(cronDate).format('D/M h:mma')
     setLastCronDateTime(dateStr)
   })
+
   const controlCronJob = async command => {
     try {
-      const res = await axios.get(`/${command}-cron`)
+      const res = await axios.get(`/${command}-cron`,{headers:{'Authorization': token}})
       setIsCronRunning(command === 'start')
     } catch (err) {
       console.log(err)

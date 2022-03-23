@@ -34,7 +34,7 @@ const Messages = ({ socket,token}) => {
 
   const getMessages = async () => {
     try {
-      const { data } = await axios.get('/messages')
+      const { data } = await axios.get('/messages',{headers:{'Authorization': token}})
       setMessages(data)
     } catch (err) {
       console.log(err)
@@ -43,7 +43,7 @@ const Messages = ({ socket,token}) => {
 
   const sendMessages = async () => {
     try {
-      const res = await axios.post('/messages', {})
+      const res = await axios.post('/messages', {headers:{'Authorization': token}, body: {}})
       console.log(res)
       getMessages()
       getHistory()
@@ -54,19 +54,18 @@ const Messages = ({ socket,token}) => {
 
   const deleteMessage = async id => {
     try {
-      await axios.post('/delete-message', {id})
+      await axios.post('/delete-message', {headers:{'Authorization': token}, body:{id} })
       getMessages()
     } catch(err){
       console.log(err)
     }
   }
 
-
-
   useEffect(() => {
     getMessages()
     getHistory()
   }, [])
+  
   return <>
   <div className={`messages-container ${showAddModal && 'blur'}`}>
 
@@ -112,7 +111,7 @@ const Messages = ({ socket,token}) => {
       </div>
     </div>
     <div className="btn-container">
-    <Cron socket={socket} />
+    <Cron socket={socket} token={token} />
     <button onClick={() => setShowAddModal(true)}>add message</button>
     <button onClick={sendMessages} >send messages</button>
 

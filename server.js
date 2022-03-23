@@ -159,6 +159,9 @@ app.post('/messages', async (req, res) => {
 app.post('/delete-message',  async (req,res) => {
   const { id } = await req.body
   try {
+    if(req.headers.authorization !== tokenManager()) {
+      res.status(401).send('unauthorized')
+    }
     await Message.deleteOne({_id: id})
   } catch(err) {
     console.log(err)
@@ -180,6 +183,9 @@ app.post('/newMsg', async (req, res) => {
 
 app.get('/start-cron', (req, res) => {
   try {
+    if(req.headers.authorization !== tokenManager()) {
+      res.status(401).send('unauthorized')
+    }
     task.start()
     console.log('cron job started')
     res.send('cron job started successfully')
@@ -191,6 +197,9 @@ app.get('/start-cron', (req, res) => {
 
 app.get('/stop-cron', (req, res) => {
   try {
+    if(req.headers.authorization !== tokenManager()) {
+      res.status(401).send('unauthorized')
+    }
     task.stop()
     console.log('cron job stopped')
     res.send('cron job stopped successfully')
@@ -224,7 +233,7 @@ const tokenManager = () => {
   console.log('returned payload:' , returnedPayload)
   return returnedPayload.token
 }
-tokenManager()
+
 app.post('/login', async (req,res) => {
   const { password } = req.body
   

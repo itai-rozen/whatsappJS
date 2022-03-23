@@ -41,7 +41,12 @@ const Login = ({ socket,token }) => {
 
   const disconnect = async () => {
     try {
-      await axios.get('/disconnect')
+      await axios.get('/disconnect', {
+        headers: {
+          "Content-Type" : "application/json",
+          "Authorization": token
+        }
+      })
       setImgSrc('')
     } catch (err) {
       console.log(err)
@@ -50,7 +55,7 @@ const Login = ({ socket,token }) => {
 
   const checkIsConnected = async () => {
     try {
-      const { data } = await axios.get('/is-connected')
+      const { data } = await axios.get('/is-connected',{headers:{'Authorization': token}})
       console.log('is user connected? ', data)
       setIsConnected(data)
     }catch(err){
