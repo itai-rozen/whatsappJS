@@ -147,7 +147,7 @@ app.post('/history', async (req, res) => {
       .sort({ _id: -1 })
       .limit(limit)
       .skip((page-1) * limit)
-    const count = await History.countDocuments()
+    const count = await History.count({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
     res.status(200).send({messages: history, count, pages: Math.ceil(count/limit) })
   } catch (err) {
     console.log(err)

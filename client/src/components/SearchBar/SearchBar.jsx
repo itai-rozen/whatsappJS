@@ -1,23 +1,26 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import './searchBar.css'
 
-const SearchBar = ({ collection, partialPhone,setPartialPhone,partialContent,setPartialContent }) => {
-
-  const searchQueries = async () => {
-    try {
-      const res = await axios.post('/search', { phone: partialPhone, content: partialContent, collection }  )
-      
-    } catch(err){
-      console.log(err)
-    }
+const SearchBar = ({ messages,setMessages,getMessages }) => {
+  const [isChanged, setIsChanged] = useState(false)
+  const searchQueries =  () => {
+    setIsChanged(true)
   }
+
+  useEffect(() => {
+    if (isChanged){
+      getMessages()
+      setIsChanged(false)
+    }
+    console.log('messages @searchbar: ',messages)
+  },[isChanged])
 
   return <div className="search-container">
     <label htmlFor="phone">Phone</label>
-    <input type="text" id="phone" value={partialPhone} onChange={e => setPartialPhone(e.target.value)} />
+    <input type="text" id="phone" value={messages?.phoneQuery} onChange={e => setMessages({...messages, phoneQuery: e.target.value})} />
     <label htmlFor="content">Content</label>
-    <input type="text" id="content" value={partialContent} onChange={e => setPartialContent(e.target.value)} />
+    <input type="text" id="content" value={messages?.contentQuery} onChange={e => setMessages({...messages, contentQuery: e.target.value})} />
     <button onClick={searchQueries}>🔎</button>
   </div>
 }
