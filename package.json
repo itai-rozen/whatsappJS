@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js --ignore *.json",
+    "start": "nodemon server.js --ignore *.json",
     "heroku-postbuild": "cd client && npm install && npm run build"
   },
   "keywords": [],

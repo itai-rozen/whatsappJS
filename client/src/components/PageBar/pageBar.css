@@ -1,0 +1,11 @@
+.pages-container {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pages-container button {
+  font-size: 0.8rem;
+  padding: 2px 4px;
+}

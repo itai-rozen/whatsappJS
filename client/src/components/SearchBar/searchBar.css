@@ -1,0 +1,12 @@
+.search-container button {
+  display: inline;
+  font-size: 1rem;
+  background-color: #e1e1e1;
+  border: unset;
+  padding: 2px 4px;
+}
+
+.search-container input {
+  padding: 2px 4px;
+  margin: 4px  8px;
+}

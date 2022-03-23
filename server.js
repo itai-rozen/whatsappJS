@@ -135,14 +135,22 @@ app.get('/messages', async (req, res) => {
   }
 })
 
-app.get('/history', async (req, res) => {
+app.post('/history', async (req, res) => {
+  const { phone = "", content = "", limit = 20, page } = req.body
+  console.log('pagae: ', page)
   try {
     if(req.headers.authorization !== tokenManager()) {
       res.status(401).send('unauthorized')
     }
-    const history = await History.find().sort({ _id: -1 }).limit(50)
-    res.send(history)
+    const history = await History
+      .find({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
+      .sort({ _id: -1 })
+      .limit(limit)
+      .skip((page-1) * limit)
+    const count = await History.countDocuments()
+    res.status(200).send({messages: history, count, pages: Math.ceil(count/limit) })
   } catch (err) {
+    console.log(err)
     res.status(400).send(err)
   }
 })
@@ -175,7 +183,7 @@ app.post('/newMsg', async (req, res) => {
   try {
     const message = new Message(body)
     await message.save()
-    res.end()
+    res.status(200).send()
   } catch (err) {
     res.status(400).send(err)
   }
@@ -230,7 +238,6 @@ const tokenManager = () => {
     returnedPayload = tokenData
       break;
   }
-  console.log('returned payload:' , returnedPayload)
   return returnedPayload.token
 }
 
@@ -249,7 +256,18 @@ app.post('/login', async (req,res) => {
   }
 })
 
+app.post('/search',  async (req,res) => {
+  const { phone, content, collection } = req.body
+  const collectionName = collection === 'history' ? History : Message
+  try {
+    const count = await collectionName.count({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
+    console.log('result: ',count)
+    
+  } catch(err) {
+    console.log(err)
+  }
 
+})
 
 const handleRecipientStack = async () => {
   io.emit('cronDate', new Date())
@@ -302,8 +320,9 @@ const addToHistoryQue = async (msg, crash_log = '') => {
   try {
     const historyDocument = new History({ phone, content, provider, crash_log })
     await historyDocument.save()
-    const historyMessages = await History.find()
-    io.emit('historyQue', historyMessages)
+    const historyMessages = await History.find().sort({ _id: -1 }).limit(50)
+    const count = await History.countDocuments()
+    io.emit('historyQue', {messages: historyMessages, count})
     return true
   } catch (err) {
     console.log(err)
@@ -314,8 +333,8 @@ const addToHistoryQue = async (msg, crash_log = '') => {
 const deleteFromMessagesQue = async id => {
   try {
     await Message.deleteOne({ _id: id })
-    const messages = await Message.find()
-    io.emit('messageQue', messages)
+    const messages = await Message.find().sort({_id: 1}).limit(50)
+    io.emit('messageQue', {messages:messages})
   } catch (err) {
     console.log(err)
   }
