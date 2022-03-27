@@ -113,7 +113,7 @@ app.get('/disconnect', async (req, res) => {
       res.status(401).send('unauthorized')
     }
     fs.unlinkSync(SESSION_FILE_PATH)
-    await client.logout()
+    if (client) await client.logout()
     client = ''
     sessionData = ''
     task.stop()
