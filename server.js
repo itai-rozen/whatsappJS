@@ -39,6 +39,7 @@ const TOKEN_FILE_PATH = './token.json'
 let sessionData
 let client
 let task
+let isStopped = false
 
 
 
@@ -200,6 +201,7 @@ app.get('/start-cron', (req, res) => {
       res.status(401).send('unauthorized')
     }
     task.start()
+    isStopped = false
     console.log('cron job started')
     res.send('cron job started successfully')
   } catch (err) {
@@ -214,6 +216,7 @@ app.get('/stop-cron', (req, res) => {
       res.status(401).send('unauthorized')
     }
     task.stop()
+    isStopped = true
     console.log('cron job stopped')
     res.send('cron job stopped successfully')
   } catch (err) {
@@ -356,7 +359,7 @@ function startCronJob() {
 const stopAndRestartTask = () => {
   task.stop()
   console.log('cron job stopped')
-  task.start()
+  if (!isStopped) task.start()
 }
 
 const mongoUrl = `mongodb+srv://itai_rozen:${process.env.MONGO_PASS}@cluster0.sihrb.mongodb.net/${process.env.DB}?retryWrites=true&w=majority`
