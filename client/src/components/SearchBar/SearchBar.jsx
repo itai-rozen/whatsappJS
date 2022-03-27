@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
 import './searchBar.css'
 
 const SearchBar = ({ messages,setMessages,getMessages }) => {
@@ -13,7 +12,6 @@ const SearchBar = ({ messages,setMessages,getMessages }) => {
       getMessages()
       setIsChanged(false)
     }
-    console.log('messages @searchbar: ',messages)
   },[isChanged])
 
   return <div className="search-container">

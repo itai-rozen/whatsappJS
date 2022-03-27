@@ -14,7 +14,6 @@ const Login = ({ socket,token }) => {
   });
 
   socket.on('getQr', data => {
-    // console.log('data:' ,data)
     setImgSrc(data)
     setIsLoading(false)
   })
@@ -32,7 +31,6 @@ const Login = ({ socket,token }) => {
           "Authorization": token
         }
       })
-      console.log('response: ',res)
     } catch (err) {
       console.log(err)
       setIsLoading(false)
@@ -56,7 +54,6 @@ const Login = ({ socket,token }) => {
   const checkIsConnected = async () => {
     try {
       const { data } = await axios.get('/is-connected',{headers:{'Authorization': token}})
-      console.log('is user connected? ', data)
       setIsConnected(data)
     }catch(err){
       console.log(err)
