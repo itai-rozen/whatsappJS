@@ -91,7 +91,7 @@ const Messages = ({ socket, token }) => {
 
   const deleteMessage = async id => {
     try {
-      await axios.post('/delete-message',{ id }, { headers: { 'Authorization': token }  })
+      await axios.post('/delete-message', { id }, { headers: { 'Authorization': token } })
       getMessages()
     } catch (err) {
       console.log(err)
@@ -122,15 +122,18 @@ const Messages = ({ socket, token }) => {
             <p>created at</p>
             <p></p>
           </div>
-          {messages.messages?.map(msg => {
-            return <div className='message' key={msg._id}>
-              <p> {msg.phone}</p>
-              <p> {msg.content}</p>
-              <p> {msg.provider}</p>
-              <p>{moment(msg.createdAt).format('d MMM h:mma')}</p>
-              <p className='delete-msg' onClick={() => deleteMessage(msg._id)}> 🗑️</p>
-            </div>
-          })}
+          <div className="message-list-container">
+
+            {messages.messages?.map(msg => {
+              return <div className='message' key={msg._id}>
+                <p> {msg.phone}</p>
+                <p> {msg.content}</p>
+                <p> {msg.provider}</p>
+                <p>{moment(msg.createdAt).format('d MMM h:mma')}</p>
+                <p className='delete-msg' onClick={() => deleteMessage(msg._id)}> 🗑️</p>
+              </div>
+            })}
+          </div>
           <div className="page-bar">
             <PageBar
               setMessages={setMessages}
@@ -154,15 +157,18 @@ const Messages = ({ socket, token }) => {
             <p>Crash Log</p>
 
           </div>
+          <div className="message-list-container">
+
           {historyMessages.messages?.map(msg => {
             return <div className='message' key={msg._id}>
               <p> {msg.phone}</p>
               <p> {msg.content}</p>
               <p> {msg.provider}</p>
               <p> {msg.createdAt && moment(msg.createdAt).format('D/M h:mma')} </p>
-              <p> {msg.crash_log || " "}</p>
+              <p title={msg.crash_log}> {msg.crash_log.length >0 && <span className='bold'>Error -  hover for details</span> || " "}</p>
             </div>
           })}
+          </div>
           <div className="page-bar">
             <PageBar
               setMessages={setHistoryMessages}
@@ -171,6 +177,7 @@ const Messages = ({ socket, token }) => {
             />
           </div>
         </div>
+
       </div>
       <div className="btn-container">
         <Cron socket={socket} token={token} />

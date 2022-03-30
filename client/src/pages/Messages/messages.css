@@ -18,14 +18,17 @@
 .que  {
   width: 50%;
   height: 85vh;
-  overflow-y: auto;
   border: 3px solid black;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
-.history p {
-  width: 25%;
+.message-list-container {
+  overflow-y: auto;
+  height: 84vh;
+  /* margin: 0 auto; */
 }
-.messages p {
+.history p, .messages p {
   width: 20%;
 }
 .blur {
@@ -48,7 +51,12 @@
 }
 
 .page-bar {
-  position: absolute;
-  bottom: 5px;
+  /* position: absolute; */
+  /* bottom: 5px; */
   width: 100%;
+  justify-self: flex-end;
+}
+
+.bold {
+  font-weight: 600;
 }
