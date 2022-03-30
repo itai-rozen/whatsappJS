@@ -127,7 +127,7 @@ const Messages = ({ socket, token }) => {
               <p> {msg.phone}</p>
               <p> {msg.content}</p>
               <p> {msg.provider}</p>
-              <p>{moment(msg.createdAt).format('d/m h:mma')}</p>
+              <p>{moment(msg.createdAt).format('d MMM h:mma')}</p>
               <p className='delete-msg' onClick={() => deleteMessage(msg._id)}> 🗑️</p>
             </div>
           })}
