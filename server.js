@@ -28,7 +28,7 @@ require('dotenv').config()
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-const { Client, LegacySessionAuth } = require('whatsapp-web.js');
+const { Client, LegacySessionAuth, NoAuth } = require('whatsapp-web.js');
 
 
 // Path where the session data will be stored
@@ -43,6 +43,7 @@ let isStopped = false
 
 
 const clientOpts = {
+  // authStrategy: new NoAuth(),
   authStrategy: new LegacySessionAuth({
     session: sessionData
   }),
@@ -292,7 +293,9 @@ const sendIntervaledMessages = async messages => {
 
     for (const message of messages) {
       const numberId = await client.getNumberId(message.phone)
+      // console.log('number id: ',numberId)
       const serializedId = numberId._serialized
+      // const serializedId = message.phone + `@c.us`
       const randNum = Math.floor(Math.random() * 6 + 10)
       await new Promise(resolve => setTimeout(resolve, randNum * 1000))
       sendAutoMsg(message, serializedId)
@@ -362,7 +365,7 @@ const stopAndRestartTask = () => {
 }
 
 const mongoUrl = `mongodb+srv://itai_rozen:${process.env.MONGO_PASS}@cluster0.sihrb.mongodb.net/${process.env.DB}?retryWrites=true&w=majority`
-server.listen(process.env.PORT, () => {
+server.listen(process.env.PORT || 4001, () => {
   mongoose.connect(mongoUrl, () => {
     console.log('mongo & server connected')
   })
