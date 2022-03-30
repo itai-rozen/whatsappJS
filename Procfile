@@ -1,1 +1,1 @@
-worker : node server.js --ignore *.json
+worker : node server.js

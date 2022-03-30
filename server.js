@@ -11,7 +11,6 @@ const cron = require('node-cron')
 const { Server } = require('socket.io')
 app.use(express.static(path.join(__dirname, 'client/build')));
 const bcrypt = require('bcrypt')
-// puppeteer.launch({ args: });
 
 
 const io = new Server(server, {
