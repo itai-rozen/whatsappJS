@@ -35,7 +35,7 @@ const { Client, LegacySessionAuth, NoAuth } = require('whatsapp-web.js');
 const SESSION_FILE_PATH = './session.json';
 const TOKEN_FILE_PATH = './token.json'
 
-let sessionData
+let sessionData = fs.existsSync(SESSION_FILE_PATH) ? require(SESSION_FILE_PATH) : undefined
 let client
 let task
 let isStopped = false
@@ -53,7 +53,6 @@ const clientOpts = {
 // Load the session data if it has been previously saved
 
 if (fs.existsSync(SESSION_FILE_PATH)) {
-  sessionData = require(SESSION_FILE_PATH);
   client = new Client(clientOpts)
   startCronJob()
   client.initialize()
@@ -294,7 +293,7 @@ const sendIntervaledMessages = async messages => {
     for (const message of messages) {
       const numberId = await client.getNumberId(message.phone)
       // console.log('number id: ',numberId)
-      const serializedId = numberId._serialized
+      const serializedId = numberId?._serialized
       // const serializedId = message.phone + `@c.us`
       const randNum = Math.floor(Math.random() * 6 + 10)
       await new Promise(resolve => setTimeout(resolve, randNum * 1000))
@@ -310,6 +309,7 @@ const sendAutoMsg = async (msg, id) => {
   console.log('@sendAutoMsg func')
   let error = ''
   try {
+    if (!id) throw 'invalid phone'
     const message = await client.sendMessage(id, msg.content)
   } catch (err) {
     console.log(err)
@@ -330,7 +330,7 @@ const addToHistoryQue = async (msg, crash_log = '') => {
   try {
     const historyDocument = new History({ phone, content, provider, crash_log })
     await historyDocument.save()
-    const historyMessages = await History.find().sort({ _id: -1 }).limit(50)
+    const historyMessages = await History.find().sort({ _id: -1 }).limit(10)
     const count = await History.countDocuments()
     io.emit('historyQue', {messages: historyMessages, count})
     return true
