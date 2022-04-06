@@ -9,6 +9,7 @@ const LoginUser = ({ setIsApproved, setToken}) => {
     try {
       const res = await axios.post('/login', {password})
       if(res.data?.tokenstring){
+        localStorage.setItem('wweb-access-token', JSON.stringify(res.data.tokenstring))
         setIsApproved(true)
         setToken(res.data.tokenstring)
       }

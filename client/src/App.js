@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './App.css';
 import Login from './pages/Login/Login';
@@ -24,7 +24,18 @@ function App() {
   })
 
   socket.on('test', data => console.log('data:', data))
+  
+  const checkToken = () => {
+    const storageToken = JSON.parse(localStorage.getItem('wweb-access-token'))
+    if (storageToken){
+      setToken(storageToken)
+      setIsApproved(true)
+    }
+  }
 
+  useEffect(() => {
+    checkToken()
+  },[])
   return (
     <div className="App">
 {
