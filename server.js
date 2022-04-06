@@ -9,7 +9,7 @@ const fs = require('fs');
 const mongoose = require('mongoose')
 const cron = require('node-cron')
 const { Server } = require('socket.io')
-app.use(express.static(path.join(__dirname, 'client/build')));
+if (process.env.NODE_ENV !== 'production') app.use(express.static(path.join(__dirname, 'client/build')));
 const bcrypt = require('bcrypt')
 
 
@@ -224,6 +224,10 @@ app.get('/stop-cron', (req, res) => {
   }
 })
 
+app.get('/*', (req,res) => {
+  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+})
+
 const tokenManager = () => {
   const tokenData = require(TOKEN_FILE_PATH)
   const { token, created_at } = tokenData
@@ -252,10 +256,8 @@ app.post('/login', async (req,res) => {
   const { password } = req.body
   
   const token = tokenManager()
-  console.log('token: ',token)
   try {
     const isValid = await bcrypt.compare(password, process.env.LOGIN_PASS)  
-    console.log('is valid? ',isValid)
     if (isValid) res.status(200).send({tokenstring:token}).json()
     else throw Error('login failed. invalid password')
   }catch(err){
@@ -267,14 +269,13 @@ app.post('/search',  async (req,res) => {
   const { phone, content, collection } = req.body
   const collectionName = collection === 'history' ? History : Message
   try {
-    const count = await collectionName.count({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
-    console.log('result: ',count)
-    
+    const count = await collectionName.count({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})    
   } catch(err) {
     console.log(err)
   }
 
 })
+
 
 const handleRecipientStack = async () => {
   io.emit('cronDate', new Date())

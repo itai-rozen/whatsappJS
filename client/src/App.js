@@ -28,7 +28,7 @@ function App() {
   return (
     <div className="App">
 {
-  isApproved&&token ?     
+  isApproved && token ?     
  <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login url={url} socket={socket} token={token} />} />
