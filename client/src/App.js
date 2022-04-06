@@ -7,27 +7,27 @@ import io from 'socket.io-client'
 import LoginUser from './pages/LoginUser/LoginUser';
 
 function App() {
-  const [isApproved,setIsApproved] = useState(false)
-  const [token,setToken] = useState(undefined)
+  const [isApproved, setIsApproved] = useState(false)
+  const [token, setToken] = useState(undefined)
   const url = process.env.NODE_ENV === 'production' ?
-  '/':
-  'http://localhost:4001'
+    '/' :
+    'http://localhost:4001'
 
-  const socket = io(url,{
+  const socket = io(url, {
     reconnectionDelay: 1000,
-    reconnection:true,
+    reconnection: true,
     reconnectionAttempts: 10,
     transports: ['websocket'],
-    agent: false, 
+    agent: false,
     upgrade: false,
     rejectUnauthorized: false
   })
 
   socket.on('test', data => console.log('data:', data))
-  
+
   const checkToken = () => {
     const storageToken = JSON.parse(localStorage.getItem('wweb-access-token'))
-    if (storageToken){
+    if (storageToken) {
       setToken(storageToken)
       setIsApproved(true)
     }
@@ -35,20 +35,18 @@ function App() {
 
   useEffect(() => {
     checkToken()
-  },[])
+  }, [])
   return (
     <div className="App">
-{
-  isApproved && token ?     
- <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Login url={url} socket={socket} token={token} />} />
-          <Route path="/dashboard" element={<Messages url={url} socket={socket} token={token} />} />
-        </Routes>
-      </BrowserRouter> :
-      <LoginUser setIsApproved={setIsApproved} setToken={setToken} />
-}
-
+      {
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={isApproved && token ? <Login url={url} socket={socket} token={token} /> :
+                                                           <LoginUser setIsApproved={setIsApproved} setToken={setToken} />} />
+            <Route path="/dashboard" element={<Messages url={url} socket={socket} token={token} />} />
+          </Routes>
+        </BrowserRouter>
+      }
     </div>
   );
 }
