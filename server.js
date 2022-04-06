@@ -9,7 +9,7 @@ const fs = require('fs');
 const mongoose = require('mongoose')
 const cron = require('node-cron')
 const { Server } = require('socket.io')
-if (process.env.NODE_ENV !== 'production') app.use(express.static(path.join(__dirname, 'client/build')));
+app.use(express.static(path.join(__dirname, 'client/build')));
 const bcrypt = require('bcrypt')
 
 
