@@ -46,7 +46,7 @@ const Messages = ({ socket, token }) => {
   const getMessages = async () => {
     try {
       const { data } = await axios
-        .post('/messages', {
+        .post('/api/messages', {
           phone: messages.phoneQuery,
           content: messages.contentQuery,
           limit: QUERIES_PER_PAGE,
@@ -62,7 +62,7 @@ const Messages = ({ socket, token }) => {
     setIsLoading(true)
     try {
       const { data } = await axios
-        .post('/history', {
+        .post('/api/history', {
           phone: historyMessages.phoneQuery,
           content: historyMessages.contentQuery,
           limit: QUERIES_PER_PAGE,
@@ -80,7 +80,7 @@ const Messages = ({ socket, token }) => {
 
   const sendMessages = async () => {
     try {
-      const res = await axios.post('/send-messages', {}, { headers: { 'Authorization': token } })
+      const res = await axios.post('/api/send-messages', {}, { headers: { 'Authorization': token } })
       console.log(res)
       getMessages()
       getHistory()
@@ -91,7 +91,7 @@ const Messages = ({ socket, token }) => {
 
   const deleteMessage = async id => {
     try {
-      await axios.post('/delete-message', { id }, { headers: { 'Authorization': token } })
+      await axios.post('/api/delete-message', { id }, { headers: { 'Authorization': token } })
       getMessages()
     } catch (err) {
       console.log(err)

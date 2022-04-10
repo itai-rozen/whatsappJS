@@ -11,7 +11,7 @@ const AddMessage = ({ setShowAddModal, getMessages }) => {
     e.preventDefault()
     
     try {
-      await axios.post('/newMsg', {
+      await axios.post('/api/newMsg', {
         phone : phone.charAt(0) === '0'? `972${phone.slice(1)}` : phone,
         content, 
         provider: provider.charAt(0) === '0'?`972${provider.slice(1)}` : provider

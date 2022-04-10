@@ -11,7 +11,7 @@ const cron = require('node-cron')
 const { Server } = require('socket.io')
 app.use(express.static(path.join(__dirname, 'client/build')));
 const bcrypt = require('bcrypt')
-
+const router = express.Router()
 
 const io = new Server(server, {
   cors: {
@@ -28,14 +28,15 @@ require('dotenv').config()
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-const { Client, LegacySessionAuth, NoAuth } = require('whatsapp-web.js');
+app.use('/api', router)
+const { Client, LegacySessionAuth, LocalAuth, NoAuth } = require('whatsapp-web.js');
 
 
 // Path where the session data will be stored
-const SESSION_FILE_PATH = './session.json';
-const TOKEN_FILE_PATH = './token.json'
+const SESSION_FILE_PATH = './.wwebjs_auth/session-client001/DevToolsActivePort';
+// const TOKEN_FILE_PATH = './token.json'
 
-let sessionData
+// let sessionData
 let client
 let task
 let isStopped = false
@@ -43,47 +44,48 @@ let isStopped = false
 
 
 const clientOpts = {
-  // authStrategy: new NoAuth(),
-  authStrategy: new LegacySessionAuth({
-    session: sessionData
-  }),
+  authStrategy: new NoAuth(),
+  // authStrategy: new LocalAuth({
+  //   clientId : 'client001'
+  // }),
   puppeteer: { args: ['--no-sandbox'] }
 }
 
 // Load the session data if it has been previously saved
 
 if (fs.existsSync(SESSION_FILE_PATH)) {
-  sessionData = require(SESSION_FILE_PATH);
-  client = new Client(clientOpts)
+  // sessionData = require(SESSION_FILE_PATH);
+  // client = new Client(clientOpts)
   startCronJob()
-  client.initialize()
+  // client.initialize()
 }
 
 
 
-app.get('/is-connected', (req, res) => {
+router.get('/is-connected', (req, res) => {
   res.send(fs.existsSync(SESSION_FILE_PATH))
 })
 
-app.get('/connect', (req, res) => {
-  if(req.headers.authorization !== tokenManager()) {
+router.get('/connect', (req, res) => {
+  console.log('/connect')
+  io.emit('test', 'entered connect path')
+  if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
     res.status(401).send('unauthorized')
   }
   client = new Client(clientOpts)
 
   client.on('authenticated', async (session) => {
     io.emit('test', 'entered authentication event')
-
-    try {
-      sessionData = session;
-      fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
-        if (err) {
-          console.error(err);
-        }
-      });
-    } catch (err) {
-      console.log(err)
-    }
+    // try {
+    //   // sessionData = session;
+    //   fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
+    //     if (err) {
+    //       console.error(err);
+    //     }
+    //   });
+    // } catch (err) {
+    //   console.log(err)
+    // }
   });
 
   client.on('qr', qr => {
@@ -107,27 +109,27 @@ app.get('/connect', (req, res) => {
 
 })
 
-app.get('/disconnect', async (req, res) => {
+router.get('/disconnect', async (req, res) => {
   try {
-    if(req.headers.authorization !== tokenManager()) {
+    if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
       res.status(401).send('unauthorized')
     }
     fs.unlinkSync(SESSION_FILE_PATH)
     if (client) await client.logout()
     client = ''
-    sessionData = ''
+    // sessionData = ''
     task.stop()
     io.emit('connectUser', false)
     res.status(200).send()
   } catch (err) {
-    res.status(400).send(err)
+    res.status(400).send(err.message)
   }
 })
 
-app.post('/messages', async (req, res) => {
+router.post('/messages', async (req, res) => {
   const { phone = "", content = "", limit = 10, page } = req.body
   try {
-    if(req.headers.authorization !== tokenManager()) {
+    if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
       res.status(401).send('unauthorized')
     }
     const messages = await Message      
@@ -142,10 +144,10 @@ app.post('/messages', async (req, res) => {
   }
 })
 
-app.post('/history', async (req, res) => {
+router.post('/history', async (req, res) => {
   const { phone = "", content = "", limit = 10, page } = req.body
   try {
-    if(req.headers.authorization !== tokenManager()) {
+    if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
       res.status(401).send('unauthorized')
     }
     const history = await History
@@ -163,17 +165,17 @@ app.post('/history', async (req, res) => {
 
 
 // for testing
-app.post('/send-messages', async (req, res) => {
+router.post('/send-messages', async (req, res) => {
   console.log('POST /send-messages')
   const oldest30Messages = await Message.find().sort({ _id: 1 }).limit(1)
   sendIntervaledMessages(oldest30Messages)
   res.end()
 })
 
-app.post('/delete-message',  async (req,res) => {
+router.post('/delete-message',  async (req,res) => {
   const { id } = await req.body
   try {
-    if(req.headers.authorization !== tokenManager()) {
+    if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
       res.status(401).send('unauthorized')
     }
     await Message.deleteOne({_id: id})
@@ -184,7 +186,7 @@ app.post('/delete-message',  async (req,res) => {
 })
 
 // for testing
-app.post('/newMsg', async (req, res) => {
+router.post('/newMsg', async (req, res) => {
   const { body } = req
   try {
     const message = new Message(body)
@@ -195,9 +197,9 @@ app.post('/newMsg', async (req, res) => {
   }
 })
 
-app.get('/start-cron', (req, res) => {
+router.get('/start-cron', (req, res) => {
   try {
-    if(req.headers.authorization !== tokenManager()) {
+    if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
       res.status(401).send('unauthorized')
     }
     task.start()
@@ -210,9 +212,9 @@ app.get('/start-cron', (req, res) => {
   }
 })
 
-app.get('/stop-cron', (req, res) => {
+router.get('/stop-cron', (req, res) => {
   try {
-    if(req.headers.authorization !== tokenManager()) {
+    if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
       res.status(401).send('unauthorized')
     }
     task.stop()
@@ -225,49 +227,49 @@ app.get('/stop-cron', (req, res) => {
   }
 })
 
-app.get('/*', (req,res) => {
-  // res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-  res.redirect('/')
-})
+// router.get('/*', (req,res) => {
+//   // res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+//   res.redirect('/')
+// })
 
-const tokenManager = () => {
-  const tokenData = require(TOKEN_FILE_PATH)
-  const { token, created_at } = tokenData
-  const createTokenPayload = () => {
-   const randomStr =  Math.random().toString(36).substring(2);
-   const payloadToken = randomStr + randomStr
-   const payload = { token: payloadToken, created_at: Math.round(new Date().getTime() / 1000) }
-   fs.writeFileSync(TOKEN_FILE_PATH, JSON.stringify(payload))
-   return payload
-  }
-  let returnedPayload
-  switch (created_at) {
-    case null:
-    returnedPayload =  createTokenPayload();
-    case (Math.round(new Date().getTime() / 1000) - created_at > 6.048e+8) :
-    returnedPayload =  createTokenPayload();
+// const tokenManager = () => {
+  // const tokenData = process.env.ACCESS_TOKEN
+  // const { token, created_at } = tokenData
+  // const createTokenPayload = () => {
+  //  const randomStr =  Math.random().toString(36).substring(2);
+  //  const payloadToken = randomStr + randomStr
+  //  const payload = { token: payloadToken, created_at: Math.round(new Date().getTime() / 1000) }
+  //  fs.writeFileSync(TOKEN_FILE_PATH, JSON.stringify(payload))
+  //  return payload
+  // }
+  // let returnedPayload
+  // switch (created_at) {
+  //   case null:
+  //   returnedPayload =  createTokenPayload();
+  //   case (Math.round(new Date().getTime() / 1000) - created_at > 6.048e+8) :
+  //   returnedPayload =  createTokenPayload();
   
-    default:
-    returnedPayload = tokenData
-      break;
-  }
-  return returnedPayload.token
-}
+  //   default:
+  //   returnedPayload = tokenData
+  //     break;
+  // }
+  // return returnedPayload.token
+// }h
 
-app.post('/login', async (req,res) => {
+router.post('/login', async (req,res) => {
   const { password } = req.body
   
-  const token = tokenManager()
+  const token = process.env.ACCESS_TOKEN
   try {
     const isValid = await bcrypt.compare(password, process.env.LOGIN_PASS)  
     if (isValid) res.status(200).send({tokenstring:token}).json()
     else throw Error('login failed. invalid password')
   }catch(err){
-    res.status(400).send('no')
+    res.status(400).send(err.message)
   }
 })
 
-app.post('/search',  async (req,res) => {
+router.post('/search',  async (req,res) => {
   const { phone, content, collection } = req.body
   const collectionName = collection === 'history' ? History : Message
   try {

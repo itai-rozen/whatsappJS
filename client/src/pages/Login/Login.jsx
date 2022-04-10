@@ -4,7 +4,7 @@ import axios from 'axios';
 import './login.css'
 import Spinner from '../../components/Spinner/Spinner';
 
-const Login = ({ socket,token }) => {
+const Login = ({ url,socket,token }) => {
   const [imgSrc, setImgSrc] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
@@ -25,12 +25,13 @@ const Login = ({ socket,token }) => {
   const connect = async () => {
     setIsLoading(true)
     try {
-      const res = await axios.get('/connect', {
+      const res = await axios.get(`${url}/api/connect`, {
         headers: {
           "Content-Type" : "application/json",
           "Authorization": token
         }
       })
+      console.log('connect res: ',res)
     } catch (err) {
       console.log(err)
       setIsLoading(false)
@@ -39,7 +40,7 @@ const Login = ({ socket,token }) => {
 
   const disconnect = async () => {
     try {
-      await axios.get('/disconnect', {
+      await axios.get(`${url}/api/disconnect`, {
         headers: {
           "Content-Type" : "application/json",
           "Authorization": token
@@ -53,7 +54,7 @@ const Login = ({ socket,token }) => {
 
   const checkIsConnected = async () => {
     try {
-      const { data } = await axios.get('/is-connected',{headers:{'Authorization': token}})
+      const { data } = await axios.get(`${url}/api/is-connected`,{headers:{'Authorization': token}})
       setIsConnected(data)
     }catch(err){
       console.log(err)
