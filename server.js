@@ -228,8 +228,8 @@ router.get('/stop-cron', (req, res) => {
 })
 
 // router.get('/*', (req,res) => {
-//   // res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-//   res.redirect('/')
+  // res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  // res.redirect('/')
 // })
 
 // const tokenManager = () => {
