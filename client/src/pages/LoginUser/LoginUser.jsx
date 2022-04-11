@@ -2,12 +2,12 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import './loginUser.css'
 
-const LoginUser = ({ setIsApproved, setToken}) => {
+const LoginUser = ({ url, setIsApproved, setToken}) => {
   const [password, setPassword]  = useState('')
 
   const login = async () => {
     try {
-      const res = await axios.post('/login', {password})
+      const res = await axios.post(`${url}/api/login`, {password})
       if(res.data?.tokenstring){
         localStorage.setItem('wweb-access-token', JSON.stringify(res.data.tokenstring))
         setIsApproved(true)

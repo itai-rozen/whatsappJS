@@ -42,7 +42,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={isApproved && token ? <Login url={url} socket={socket} token={token} /> :
-                                                           <LoginUser setIsApproved={setIsApproved} setToken={setToken} />} />
+                                                           <LoginUser url={url} setIsApproved={setIsApproved} setToken={setToken} />} />
             <Route path="/dashboard" element={<Messages url={url} socket={socket} token={token} />} />
           </Routes>
         </BrowserRouter>
