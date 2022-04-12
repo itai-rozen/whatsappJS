@@ -10,7 +10,7 @@ function App() {
   const [isApproved, setIsApproved] = useState(false)
   const [token, setToken] = useState(undefined)
   const url = process.env.NODE_ENV === 'production' ?
-    'http://159.89.23.8/api' :
+    '159.89.23.8' :
     'http://localhost:4001'
 
   const socket = io(url, {
