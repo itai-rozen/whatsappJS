@@ -9,9 +9,7 @@ import LoginUser from './pages/LoginUser/LoginUser';
 function App() {
   const [isApproved, setIsApproved] = useState(false)
   const [token, setToken] = useState(undefined)
-  const url = process.env.NODE_ENV === 'production' ?
-    '' :
-    'http://localhost:4001'
+  const url = 'http://localhost:4001'
 
   const socket = io(url, {
     reconnectionDelay: 1000,

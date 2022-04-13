@@ -149,7 +149,7 @@ router.post('/history', async (req, res) => {
   try {
     if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
       res.status(401).send('unauthorized')
-    }
+    } 
     const history = await History
       .find({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
       .sort({ _id: -1 })
