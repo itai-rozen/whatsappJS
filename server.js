@@ -12,7 +12,7 @@ const { Server } = require('socket.io')
 app.use(express.static(path.join(__dirname, 'client/build')));
 const bcrypt = require('bcrypt')
 const router = express.Router()
-
+const auth = require('./middlewares/auth')
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -66,12 +66,10 @@ router.get('/is-connected', (req, res) => {
   res.send(fs.existsSync(SESSION_FILE_PATH))
 })
 
-router.get('/connect', (req, res) => {
+router.get('/connect',auth, (req, res) => {
   console.log('/connect')
   io.emit('test', 'entered connect path')
-  if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
-    res.status(401).send('unauthorized')
-  }
+
   client = new Client(clientOpts)
 
   client.on('authenticated', async (session) => {
@@ -109,11 +107,8 @@ router.get('/connect', (req, res) => {
 
 })
 
-router.get('/disconnect', async (req, res) => {
+router.get('/disconnect',auth, async (req, res) => {
   try {
-    if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
-      res.status(401).send('unauthorized')
-    }
     fs.unlinkSync(SESSION_FILE_PATH)
     if (client) await client.logout()
     client = ''
@@ -126,12 +121,9 @@ router.get('/disconnect', async (req, res) => {
   }
 })
 
-router.post('/messages', async (req, res) => {
+router.post('/messages',auth, async (req, res) => {
   const { phone = "", content = "", limit = 10, page } = req.body
   try {
-    if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
-      res.status(401).send('unauthorized')
-    }
     const messages = await Message      
     .find({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
     .sort({ _id: 1 })
@@ -144,12 +136,9 @@ router.post('/messages', async (req, res) => {
   }
 })
 
-router.post('/history', async (req, res) => {
+router.post('/history',auth, async (req, res) => {
   const { phone = "", content = "", limit = 10, page } = req.body
   try {
-    if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
-      res.status(401).send('unauthorized')
-    } 
     const history = await History
       .find({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
       .sort({ _id: -1 })
@@ -172,12 +161,9 @@ router.post('/send-messages', async (req, res) => {
   res.end()
 })
 
-router.post('/delete-message',  async (req,res) => {
+router.post('/delete-message',auth,  async (req,res) => {
   const { id } = await req.body
   try {
-    if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
-      res.status(401).send('unauthorized')
-    }
     await Message.deleteOne({_id: id})
   } catch(err) {
     console.log(err)
@@ -197,11 +183,8 @@ router.post('/newMsg', async (req, res) => {
   }
 })
 
-router.get('/start-cron', (req, res) => {
+router.get('/start-cron',auth, (req, res) => {
   try {
-    if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
-      res.status(401).send('unauthorized')
-    }
     task.start()
     isStopped = false
     console.log('cron job started')
@@ -212,11 +195,8 @@ router.get('/start-cron', (req, res) => {
   }
 })
 
-router.get('/stop-cron', (req, res) => {
+router.get('/stop-cron',auth, (req, res) => {
   try {
-    if(req.headers.authorization !== process.env.ACCESS_TOKEN) {
-      res.status(401).send('unauthorized')
-    }
     task.stop()
     isStopped = true
     console.log('cron job stopped')
@@ -269,7 +249,7 @@ router.post('/login', async (req,res) => {
   }
 })
 
-router.post('/search',  async (req,res) => {
+router.post('/search',auth,  async (req,res) => {
   const { phone, content, collection } = req.body
   const collectionName = collection === 'history' ? History : Message
   try {
