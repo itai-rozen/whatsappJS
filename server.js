@@ -29,11 +29,11 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use('/api', router)
-const { Client, LegacySessionAuth, LocalAuth, NoAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, NoAuth } = require('whatsapp-web.js');
 
 
 // Path where the session data will be stored
-const SESSION_FILE_PATH = './.wwebjs_auth/session-client001/DevToolsActivePort';
+const SESSION_FILE_PATH = './.wwebjs_auth/session-client001/Default';
 // const TOKEN_FILE_PATH = './token.json'
 
 // let sessionData
@@ -44,10 +44,10 @@ let isStopped = false
 
 
 const clientOpts = {
-  authStrategy: new NoAuth(),
-  // authStrategy: new LocalAuth({
-  //   clientId : 'client001'
-  // }),
+  // authStrategy: new NoAuth(),
+  authStrategy: new LocalAuth({
+    clientId: 'client001'
+  }),
   puppeteer: { args: ['--no-sandbox'] }
 }
 
@@ -55,9 +55,9 @@ const clientOpts = {
 
 if (fs.existsSync(SESSION_FILE_PATH)) {
   // sessionData = require(SESSION_FILE_PATH);
-  // client = new Client(clientOpts)
+  client = new Client(clientOpts)
   startCronJob()
-  // client.initialize()
+  client.initialize()
 }
 
 
@@ -66,48 +66,40 @@ router.get('/is-connected', (req, res) => {
   res.send(fs.existsSync(SESSION_FILE_PATH))
 })
 
-router.get('/connect',auth, (req, res) => {
+router.get('/connect', auth, (req, res) => {
   console.log('/connect')
   io.emit('test', 'entered connect path')
+  if (!client) {
 
-  client = new Client(clientOpts)
+    client = new Client(clientOpts)
 
-  client.on('authenticated', async (session) => {
-    io.emit('test', 'entered authentication event')
-    // try {
-    //   // sessionData = session;
-    //   fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), (err) => {
-    //     if (err) {
-    //       console.error(err);
-    //     }
-    //   });
-    // } catch (err) {
-    //   console.log(err)
-    // }
-  });
+    client.on('authenticated', async (session) => {
+      io.emit('test', 'authentication successfull')
+    });
 
-  client.on('qr', qr => {
-    io.emit('test', 'entered qr event')
+    client.on('qr', qr => {
+      io.emit('test', 'entered qr event')
 
-    // qrcode.generate(qr, { small: true });
-    qrcode.toDataURL(qr, (err, src) => {
-      io.emit('getQr', src)
-    })
-  });
+      // qrcode.generate(qr, { small: true });
+      qrcode.toDataURL(qr, (err, src) => {
+        io.emit('getQr', src)
+      })
+    });
+    client.on('ready', () => {
+      io.emit('test', 'entered ready event')
+
+      startCronJob()
+      io.emit('connectUser', true)
+    });
+    client.initialize();
+  }
 
 
-  client.on('ready', () => {
-    io.emit('test', 'entered ready event')
-
-    startCronJob()
-    io.emit('connectUser', true)
-  });
-  client.initialize();
   res.send('kill me')
 
 })
 
-router.get('/disconnect',auth, async (req, res) => {
+router.get('/disconnect', auth, async (req, res) => {
   try {
     fs.unlinkSync(SESSION_FILE_PATH)
     if (client) await client.logout()
@@ -121,31 +113,31 @@ router.get('/disconnect',auth, async (req, res) => {
   }
 })
 
-router.post('/messages',auth, async (req, res) => {
+router.post('/messages', auth, async (req, res) => {
   const { phone = "", content = "", limit = 10, page } = req.body
   try {
-    const messages = await Message      
-    .find({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
-    .sort({ _id: 1 })
-    .limit(limit)
-    .skip((page-1) * limit)
-    const count = await Message.count({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
-    res.status(200).send({messages, count, pages: Math.ceil(count/limit) })
+    const messages = await Message
+      .find({ "phone": { "$regex": phone, "$options": "i" }, "content": { "$regex": content } })
+      .sort({ _id: 1 })
+      .limit(limit)
+      .skip((page - 1) * limit)
+    const count = await Message.count({ "phone": { "$regex": phone, "$options": "i" }, "content": { "$regex": content } })
+    res.status(200).send({ messages, count, pages: Math.ceil(count / limit) })
   } catch (err) {
     res.status(400).send(err)
   }
 })
 
-router.post('/history',auth, async (req, res) => {
+router.post('/history', auth, async (req, res) => {
   const { phone = "", content = "", limit = 10, page } = req.body
   try {
     const history = await History
-      .find({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
+      .find({ "phone": { "$regex": phone, "$options": "i" }, "content": { "$regex": content } })
       .sort({ _id: -1 })
       .limit(limit)
-      .skip((page-1) * limit)
-      const count = await History.count({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})
-      res.status(200).send({messages: history, count, pages: Math.ceil(count/limit) })
+      .skip((page - 1) * limit)
+    const count = await History.count({ "phone": { "$regex": phone, "$options": "i" }, "content": { "$regex": content } })
+    res.status(200).send({ messages: history, count, pages: Math.ceil(count / limit) })
   } catch (err) {
     console.log(err)
     res.status(400).send(err)
@@ -161,11 +153,11 @@ router.post('/send-messages', async (req, res) => {
   res.end()
 })
 
-router.post('/delete-message',auth,  async (req,res) => {
+router.post('/delete-message', auth, async (req, res) => {
   const { id } = await req.body
   try {
-    await Message.deleteOne({_id: id})
-  } catch(err) {
+    await Message.deleteOne({ _id: id })
+  } catch (err) {
     console.log(err)
   }
   res.end()
@@ -183,7 +175,7 @@ router.post('/newMsg', async (req, res) => {
   }
 })
 
-router.get('/start-cron',auth, (req, res) => {
+router.get('/start-cron', auth, (req, res) => {
   try {
     task.start()
     isStopped = false
@@ -195,7 +187,7 @@ router.get('/start-cron',auth, (req, res) => {
   }
 })
 
-router.get('/stop-cron',auth, (req, res) => {
+router.get('/stop-cron', auth, (req, res) => {
   try {
     task.stop()
     isStopped = true
@@ -208,53 +200,53 @@ router.get('/stop-cron',auth, (req, res) => {
 })
 
 // router.get('/*', (req,res) => {
-  // res.sendFile(path.join(__dirname, 'build', 'index.html'));
-  // res.redirect('/')
+// res.sendFile(path.join(__dirname, 'build', 'index.html'));
+// res.redirect('/')
 // })
 
 // const tokenManager = () => {
-  // const tokenData = process.env.ACCESS_TOKEN
-  // const { token, created_at } = tokenData
-  // const createTokenPayload = () => {
-  //  const randomStr =  Math.random().toString(36).substring(2);
-  //  const payloadToken = randomStr + randomStr
-  //  const payload = { token: payloadToken, created_at: Math.round(new Date().getTime() / 1000) }
-  //  fs.writeFileSync(TOKEN_FILE_PATH, JSON.stringify(payload))
-  //  return payload
-  // }
-  // let returnedPayload
-  // switch (created_at) {
-  //   case null:
-  //   returnedPayload =  createTokenPayload();
-  //   case (Math.round(new Date().getTime() / 1000) - created_at > 6.048e+8) :
-  //   returnedPayload =  createTokenPayload();
-  
-  //   default:
-  //   returnedPayload = tokenData
-  //     break;
-  // }
-  // return returnedPayload.token
+// const tokenData = process.env.ACCESS_TOKEN
+// const { token, created_at } = tokenData
+// const createTokenPayload = () => {
+//  const randomStr =  Math.random().toString(36).substring(2);
+//  const payloadToken = randomStr + randomStr
+//  const payload = { token: payloadToken, created_at: Math.round(new Date().getTime() / 1000) }
+//  fs.writeFileSync(TOKEN_FILE_PATH, JSON.stringify(payload))
+//  return payload
+// }
+// let returnedPayload
+// switch (created_at) {
+//   case null:
+//   returnedPayload =  createTokenPayload();
+//   case (Math.round(new Date().getTime() / 1000) - created_at > 6.048e+8) :
+//   returnedPayload =  createTokenPayload();
+
+//   default:
+//   returnedPayload = tokenData
+//     break;
+// }
+// return returnedPayload.token
 // }h
 
-router.post('/login', async (req,res) => {
+router.post('/login', async (req, res) => {
   const { password } = req.body
-  
+
   const token = process.env.ACCESS_TOKEN
   try {
-    const isValid = await bcrypt.compare(password, process.env.LOGIN_PASS)  
-    if (isValid) res.status(200).send({tokenstring:token}).json()
+    const isValid = await bcrypt.compare(password, process.env.LOGIN_PASS)
+    if (isValid) res.status(200).send({ tokenstring: token }).json()
     else throw Error('login failed. invalid password')
-  }catch(err){
+  } catch (err) {
     res.status(400).send(err.message)
   }
 })
 
-router.post('/search',auth,  async (req,res) => {
+router.post('/search', auth, async (req, res) => {
   const { phone, content, collection } = req.body
   const collectionName = collection === 'history' ? History : Message
   try {
-    const count = await collectionName.count({"phone": {"$regex": phone, "$options": "i" }, "content": {"$regex":content}})    
-  } catch(err) {
+    const count = await collectionName.count({ "phone": { "$regex": phone, "$options": "i" }, "content": { "$regex": content } })
+  } catch (err) {
     console.log(err)
   }
 
@@ -276,8 +268,10 @@ const sendIntervaledMessages = async messages => {
   try {
 
     for (const message of messages) {
+      console.log('phone num: ', message.phone)
+      console.log(client ? 'client exist' : 'no client')
       const numberId = await client.getNumberId(message.phone)
-      // console.log('number id: ',numberId)
+      console.log('number id: ', numberId)
       const serializedId = numberId._serialized
       // const serializedId = message.phone + `@c.us`
       const randNum = Math.floor(Math.random() * 6 + 10)
@@ -316,7 +310,7 @@ const addToHistoryQue = async (msg, crash_log = '') => {
     await historyDocument.save()
     const historyMessages = await History.find().sort({ _id: -1 }).limit(50)
     const count = await History.countDocuments()
-    io.emit('historyQue', {messages: historyMessages, count})
+    io.emit('historyQue', { messages: historyMessages, count })
     return true
   } catch (err) {
     console.log(err)
@@ -327,9 +321,9 @@ const addToHistoryQue = async (msg, crash_log = '') => {
 const deleteFromMessagesQue = async id => {
   try {
     await Message.deleteOne({ _id: id })
-    const messages = await Message.find().sort({_id: 1}).limit(50)
+    const messages = await Message.find().sort({ _id: 1 }).limit(50)
     const count = await Message.countDocuments()
-    io.emit('messageQue', {messages:messages, count})
+    io.emit('messageQue', { messages: messages, count })
   } catch (err) {
     console.log(err)
   }
