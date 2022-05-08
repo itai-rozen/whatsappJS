@@ -24,7 +24,7 @@ const MESSAGES_PER_PAGE = 10
 const Message = require('./model/message.js')
 const History = require('./model/history.js')
 
-require('dotenv').config({path: process.env.NODE_ENV === 'production' ?  './../.env' : './.env'})
+require('dotenv').config({path: process.env.NODE_ENV === 'development' ?  './.env' : './../.env'})
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
