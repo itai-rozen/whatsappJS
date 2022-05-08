@@ -34,9 +34,7 @@ const { Client, LocalAuth, NoAuth } = require('whatsapp-web.js');
 
 // Path where the session data will be stored
 const SESSION_FILE_PATH = './sessions';
-// const TOKEN_FILE_PATH = './token.json'
 
-// let sessionData
 let client
 let task
 let isStopped = false
