@@ -5,7 +5,7 @@ const server = http.createServer(app)
 const qrcode = require('qrcode');
 const path = require('path')
 const cors = require('cors')
-const fs = require('fs');
+const fs = require('fs-extra')
 const mongoose = require('mongoose')
 const cron = require('node-cron')
 const { Server } = require('socket.io')
@@ -20,7 +20,7 @@ const io = new Server(server, {
   }
 })
 
-
+const MESSAGES_PER_PAGE = 10
 const Message = require('./model/message.js')
 const History = require('./model/history.js')
 
@@ -33,7 +33,7 @@ const { Client, LocalAuth, NoAuth } = require('whatsapp-web.js');
 
 
 // Path where the session data will be stored
-const SESSION_FILE_PATH = './.wwebjs_auth/session-client001/Default';
+const SESSION_FILE_PATH = './sessions';
 // const TOKEN_FILE_PATH = './token.json'
 
 // let sessionData
@@ -45,19 +45,16 @@ let isStopped = false
 
 const clientOpts = {
   // authStrategy: new NoAuth(),
-  authStrategy: new LocalAuth({
-    clientId: 'client001'
-  }),
+  authStrategy: new LocalAuth({dataPath: SESSION_FILE_PATH}),
   puppeteer: { args: ['--no-sandbox'] }
 }
 
 // Load the session data if it has been previously saved
 
 if (fs.existsSync(SESSION_FILE_PATH)) {
-  // sessionData = require(SESSION_FILE_PATH);
-  client = new Client(clientOpts)
+  console.log('client session exist')
+  initializeClient()
   startCronJob()
-  client.initialize()
 }
 
 
@@ -67,54 +64,35 @@ router.get('/is-connected', (req, res) => {
 })
 
 router.get('/connect', auth, (req, res) => {
-  console.log('/connect')
-  io.emit('test', 'entered connect path')
-  if (!client) {
-
-    client = new Client(clientOpts)
-
-    client.on('authenticated', async (session) => {
-      io.emit('test', 'authentication successfull')
-    });
-
-    client.on('qr', qr => {
-      io.emit('test', 'entered qr event')
-
-      // qrcode.generate(qr, { small: true });
-      qrcode.toDataURL(qr, (err, src) => {
-        io.emit('getQr', src)
-      })
-    });
-    client.on('ready', () => {
-      io.emit('test', 'entered ready event')
-
-      startCronJob()
-      io.emit('connectUser', true)
-    });
-    client.initialize();
-  }
-
-
+  initializeClient()
   res.send('kill me')
-
 })
+
+try {
+  console.log(fs.existsSync(SESSION_FILE_PATH))
+  // console.log(fs.existsSync(SESSION_FILE_PATH, )
+  // console.log(fs.readdirSync(SESSION_FILE_PATH))
+} catch(err) {
+  console.log('error while deleting: ',err)
+}
 
 router.get('/disconnect', auth, async (req, res) => {
   try {
-    fs.unlinkSync(SESSION_FILE_PATH)
-    if (client) await client.logout()
+    fs.rmdirSync(SESSION_FILE_PATH, { recursive: true })
+    if (client) await client.destroy()
     client = ''
     // sessionData = ''
     task.stop()
     io.emit('connectUser', false)
     res.status(200).send()
   } catch (err) {
+    console.log(err)
     res.status(400).send(err.message)
   }
 })
 
 router.post('/messages', auth, async (req, res) => {
-  const { phone = "", content = "", limit = 10, page } = req.body
+  const { phone = "", content = "", limit = MESSAGES_PER_PAGE, page } = req.body
   try {
     const messages = await Message
       .find({ "phone": { "$regex": phone, "$options": "i" }, "content": { "$regex": content } })
@@ -129,7 +107,7 @@ router.post('/messages', auth, async (req, res) => {
 })
 
 router.post('/history', auth, async (req, res) => {
-  const { phone = "", content = "", limit = 10, page } = req.body
+  const { phone = "", content = "", limit = MESSAGES_PER_PAGE, page } = req.body
   try {
     const history = await History
       .find({ "phone": { "$regex": phone, "$options": "i" }, "content": { "$regex": content } })
@@ -252,6 +230,37 @@ router.post('/search', auth, async (req, res) => {
 
 })
 
+async function initializeClient() {
+  client = new Client(clientOpts)
+
+  client.on('authenticated', (session) => {
+    console.log('auth event')
+    io.emit('test', 'authentication successfull')
+  });
+
+  client.on('qr', qr => {
+    console.log('qr event')
+    io.emit('test', 'entered qr event')
+
+    // qrcode.generate(qr, { small: true });
+    qrcode.toDataURL(qr, (err, src) => {
+      io.emit('getQr', src)
+    })
+  });
+  client.on('ready', async () => {
+    io.emit('test', 'entered ready event')
+    console.log('ready event')
+    startCronJob()
+  })
+  try {
+    await client.initialize()
+  } catch (err) {
+    console.log('error @init: ', err)
+  }
+  console.log('alitn initialized')
+  io.emit('connectUser', true)
+  return
+}
 
 const handleRecipientStack = async () => {
   io.emit('cronDate', new Date())
@@ -308,7 +317,7 @@ const addToHistoryQue = async (msg, crash_log = '') => {
   try {
     const historyDocument = new History({ phone, content, provider, crash_log })
     await historyDocument.save()
-    const historyMessages = await History.find().sort({ _id: -1 }).limit(50)
+    const historyMessages = await History.find().sort({ _id: -1 }).limit(MESSAGES_PER_PAGE)
     const count = await History.countDocuments()
     io.emit('historyQue', { messages: historyMessages, count })
     return true
@@ -321,7 +330,7 @@ const addToHistoryQue = async (msg, crash_log = '') => {
 const deleteFromMessagesQue = async id => {
   try {
     await Message.deleteOne({ _id: id })
-    const messages = await Message.find().sort({ _id: 1 }).limit(50)
+    const messages = await Message.find().sort({ _id: 1 }).limit(MESSAGES_PER_PAGE)
     const count = await Message.countDocuments()
     io.emit('messageQue', { messages: messages, count })
   } catch (err) {
