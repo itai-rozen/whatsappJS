@@ -1,5 +1,5 @@
 node_modules
-.env
+.env*
 session.json
 dumpster.js
 sessions

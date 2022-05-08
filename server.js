@@ -60,7 +60,7 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 
 
 router.get('/is-connected', (req, res) => {
-  res.send(fs.existsSync(SESSION_FILE_PATH))
+  res.send(fs.existsSync(SESSION_FILE_PATH) &&  !(!client))
 })
 
 router.get('/connect', auth, (req, res) => {
@@ -68,13 +68,17 @@ router.get('/connect', auth, (req, res) => {
   res.send('kill me')
 })
 
-try {
-  console.log(fs.existsSync(SESSION_FILE_PATH))
-  // console.log(fs.existsSync(SESSION_FILE_PATH, )
-  // console.log(fs.readdirSync(SESSION_FILE_PATH))
-} catch(err) {
-  console.log('error while deleting: ',err)
-}
+// const destroyClient = async () => await client.destroy()
+
+// try {
+//   console.log('client: ', client)
+//   if (client) destroyClient()
+//   console.log(fs.rmdirSync(SESSION_FILE_PATH, {recursive: true}))
+//   console.log('session exist? ', fs.existsSync(SESSION_FILE_PATH))
+// } catch(err) {
+//   console.log('error while deleting: ',err)
+// }
+
 
 router.get('/disconnect', auth, async (req, res) => {
   try {
@@ -212,7 +216,8 @@ router.post('/login', async (req, res) => {
   const token = process.env.ACCESS_TOKEN
   try {
     const isValid = await bcrypt.compare(password, process.env.LOGIN_PASS)
-    if (isValid) res.status(200).send({ tokenstring: token }).json()
+    console.log('is valid? ', isValid)
+    if (isValid) res.status(200).send({ tokenString: token, tokenDate: Date.now() })
     else throw Error('login failed. invalid password')
   } catch (err) {
     res.status(400).send(err.message)

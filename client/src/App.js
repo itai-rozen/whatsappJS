@@ -10,6 +10,7 @@ function App() {
   const [isApproved, setIsApproved] = useState(false)
   const [token, setToken] = useState(undefined)
   const url = process.env.NODE_ENV === 'development' ?  'http://localhost:4001' : ''
+  const EXPIRATION_PERIOD = 7 * 24 * 60 * 60 * 1000 // 1 week
 
   const socket = io(url, {
     reconnectionDelay: 1000,
@@ -22,17 +23,22 @@ function App() {
   })
 
   socket.on('test', data => console.log('data:', data))
+  
+  const tokenNotExpired = date => Date.now() - date < EXPIRATION_PERIOD  
 
   const checkToken = () => {
     const storageToken = JSON.parse(localStorage.getItem('wweb-access-token'))
-    if (storageToken) {
-      setToken(storageToken)
+    console.log(storageToken)
+    if (storageToken?.tokenString && tokenNotExpired(storageToken?.tokenDate)) {
+      console.log('auth ok')
+      setToken(storageToken.tokenString)
       setIsApproved(true)
     }
   }
 
   useEffect(() => {
     checkToken()
+    console.log('token: ',token)
   }, [])
   return (
     <div className="App">

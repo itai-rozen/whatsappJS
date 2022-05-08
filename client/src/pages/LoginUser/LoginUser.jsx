@@ -8,10 +8,10 @@ const LoginUser = ({ url, setIsApproved, setToken}) => {
   const login = async () => {
     try {
       const res = await axios.post(`${url}/api/login`, {password})
-      if(res.data?.tokenstring){
-        localStorage.setItem('wweb-access-token', JSON.stringify(res.data.tokenstring))
+      if(res.data?.tokenString){
+        localStorage.setItem('wweb-access-token', JSON.stringify(res.data))
         setIsApproved(true)
-        setToken(res.data.tokenstring)
+        setToken(res.data.tokenString)
       }
     }catch(err){
       console.log(err)
