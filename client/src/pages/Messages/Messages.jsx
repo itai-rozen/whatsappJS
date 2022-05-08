@@ -81,7 +81,6 @@ const Messages = ({ socket, token }) => {
   const sendMessages = async () => {
     try {
       const res = await axios.post('/api/send-messages', {}, { headers: { 'Authorization': token } })
-      console.log(res)
       getMessages()
       getHistory()
     } catch (err) {
@@ -91,10 +90,13 @@ const Messages = ({ socket, token }) => {
 
   const deleteMessage = async id => {
     try {
+      setIsLoading(true)
       await axios.post('/api/delete-message', { id }, { headers: { 'Authorization': token } })
       getMessages()
+      setIsLoading(false)
     } catch (err) {
       console.log(err)
+      setIsLoading(false)
     }
   }
 
@@ -190,7 +192,7 @@ const Messages = ({ socket, token }) => {
         <Link to="/">home</Link>
       </div>
     </div>
-    {showAddModal && <AddMessage getMessages={getMessages} setShowAddModal={setShowAddModal} />}
+    {showAddModal && <AddMessage getMessages={getMessages} setIsLoading={setIsLoading} setShowAddModal={setShowAddModal} />}
     {isLoading && <Spinner />}
   </>
 

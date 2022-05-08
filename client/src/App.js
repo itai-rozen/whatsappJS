@@ -28,9 +28,7 @@ function App() {
 
   const checkToken = () => {
     const storageToken = JSON.parse(localStorage.getItem('wweb-access-token'))
-    console.log(storageToken)
     if (storageToken?.tokenString && tokenNotExpired(storageToken?.tokenDate)) {
-      console.log('auth ok')
       setToken(storageToken.tokenString)
       setIsApproved(true)
     }
@@ -38,7 +36,6 @@ function App() {
 
   useEffect(() => {
     checkToken()
-    console.log('token: ',token)
   }, [])
   return (
     <div className="App">

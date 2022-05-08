@@ -2,7 +2,7 @@ import React, { useState   } from 'react'
 import axios from 'axios'
 import './addMessage.css'
 
-const AddMessage = ({ setShowAddModal, getMessages }) => {
+const AddMessage = ({  setIsLoading, setShowAddModal, getMessages }) => {
   const [phone, setPhone] = useState('')
   const [content, setContent] = useState('death to all humans! 🤖')
   const [provider, setProvider] = useState('0506819764')
@@ -11,15 +11,19 @@ const AddMessage = ({ setShowAddModal, getMessages }) => {
     e.preventDefault()
     
     try {
+      setIsLoading(true)
       await axios.post('/api/newMsg', {
         phone : phone.charAt(0) === '0'? `972${phone.slice(1)}` : phone,
         content, 
         provider: provider.charAt(0) === '0'?`972${provider.slice(1)}` : provider
       })
       getMessages()
+      setIsLoading(false)
       setShowAddModal(false)
+
     } catch(err){
       console.dir(err)
+      setIsLoading(false)
     }
   }
 
