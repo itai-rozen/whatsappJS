@@ -24,7 +24,7 @@ const MESSAGES_PER_PAGE = 10
 const Message = require('./model/message.js')
 const History = require('./model/history.js')
 
-require('dotenv').config()
+require('dotenv').config({path: process.env.NODE_ENV === 'production' ?  './../.env' : './.env'})
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -50,7 +50,6 @@ const clientOpts = {
 // Load the session data if it has been previously saved
 
 if (fs.existsSync(SESSION_FILE_PATH)) {
-  console.log('client session exist')
   initializeClient()
   startCronJob()
 }
@@ -88,7 +87,7 @@ router.get('/disconnect', auth, async (req, res) => {
     io.emit('connectUser', false)
     res.status(200).send()
   } catch (err) {
-    console.log(err)
+    // console.log(err)
     res.status(400).send(err.message)
   }
 })
@@ -119,7 +118,7 @@ router.post('/history', auth, async (req, res) => {
     const count = await History.count({ "phone": { "$regex": phone, "$options": "i" }, "content": { "$regex": content } })
     res.status(200).send({ messages: history, count, pages: Math.ceil(count / limit) })
   } catch (err) {
-    console.log(err)
+    // console.log(err)
     res.status(400).send(err)
   }
 })
@@ -159,10 +158,10 @@ router.get('/start-cron', auth, (req, res) => {
   try {
     task.start()
     isStopped = false
-    console.log('cron job started')
+    // console.log('cron job started')
     res.send('cron job started successfully')
   } catch (err) {
-    console.log(err)
+    // console.log(err)
     res.send('error at starting cron job')
   }
 })
@@ -171,10 +170,10 @@ router.get('/stop-cron', auth, (req, res) => {
   try {
     task.stop()
     isStopped = true
-    console.log('cron job stopped')
+    // console.log('cron job stopped')
     res.send('cron job stopped successfully')
   } catch (err) {
-    console.log(err)
+    // console.log(err)
     res.send('error at stopping cron job')
   }
 })
@@ -214,7 +213,7 @@ router.post('/login', async (req, res) => {
   const token = process.env.ACCESS_TOKEN
   try {
     const isValid = await bcrypt.compare(password, process.env.LOGIN_PASS)
-    console.log('is valid? ', isValid)
+    // console.log('is valid? ', isValid)
     if (isValid) res.status(200).send({ tokenString: token, tokenDate: Date.now() })
     else throw Error('login failed. invalid password')
   } catch (err) {
@@ -237,12 +236,12 @@ async function initializeClient() {
   client = new Client(clientOpts)
 
   client.on('authenticated', (session) => {
-    console.log('auth event')
+    // console.log('auth event')
     io.emit('test', 'authentication successfull')
   });
 
   client.on('qr', qr => {
-    console.log('qr event')
+    // console.log('qr event')
     io.emit('test', 'entered qr event')
 
     // qrcode.generate(qr, { small: true });
@@ -252,7 +251,7 @@ async function initializeClient() {
   });
   client.on('ready', async () => {
     io.emit('test', 'entered ready event')
-    console.log('ready event')
+    // console.log('ready event')
     startCronJob()
   })
   try {
@@ -260,7 +259,6 @@ async function initializeClient() {
   } catch (err) {
     console.log('error @init: ', err)
   }
-  console.log('alitn initialized')
   io.emit('connectUser', true)
   return
 }
@@ -269,7 +267,7 @@ const handleRecipientStack = async () => {
   io.emit('cronDate', new Date())
   try {
     const messagesStack = await Message.find().sort({ _id: 1 }).limit(30)
-    console.log('messages: ', messagesStack.length)
+    // console.log('messages: ', messagesStack.length)
     sendIntervaledMessages(messagesStack)
   } catch (err) {
     console.log('err: ', err)
@@ -280,10 +278,7 @@ const sendIntervaledMessages = async messages => {
   try {
 
     for (const message of messages) {
-      console.log('phone num: ', message.phone)
-      console.log(client ? 'client exist' : 'no client')
       const numberId = await client.getNumberId(message.phone)
-      console.log('number id: ', numberId)
       const serializedId = numberId._serialized
       // const serializedId = message.phone + `@c.us`
       const randNum = Math.floor(Math.random() * 6 + 10)
@@ -297,12 +292,11 @@ const sendIntervaledMessages = async messages => {
 }
 
 const sendAutoMsg = async (msg, id) => {
-  console.log('@sendAutoMsg func')
   let error = ''
   try {
     const message = await client.sendMessage(id, msg.content)
   } catch (err) {
-    console.log(err)
+    // console.log(err)
     error = err
   }
 
@@ -350,7 +344,7 @@ function startCronJob() {
 
 const stopAndRestartTask = () => {
   task.stop()
-  console.log('cron job stopped')
+  // console.log('cron job stopped')
   if (!isStopped) task.start()
 }
 
