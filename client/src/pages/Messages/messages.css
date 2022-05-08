@@ -59,4 +59,10 @@
 
 .bold {
   font-weight: 600;
+  cursor: pointer;
+}
+
+.bold:hover {
+  text-decoration: underline;
+  color: white;
 }

@@ -98,6 +98,8 @@ const Messages = ({ socket, token }) => {
     }
   }
 
+  const copyToClipboard = error =>  navigator.clipboard.writeText(error)
+  
   useEffect(() => {
     getMessages()
     getHistory()
@@ -142,6 +144,7 @@ const Messages = ({ socket, token }) => {
             />
           </div>
         </div>
+
         <div className="history que">
           <h2>History que</h2>
           <SearchBar
@@ -165,7 +168,7 @@ const Messages = ({ socket, token }) => {
               <p> {msg.content}</p>
               <p> {msg.provider}</p>
               <p> {msg.createdAt && moment(msg.createdAt).format('D/M h:mma')} </p>
-              <p title={msg.crash_log}> {msg.crash_log.length >0 && <span className='bold'>Error -  hover for details</span> || " "}</p>
+              <p onClick={() => copyToClipboard(msg.crash_log)} title={msg.crash_log}> {msg.crash_log.length >0 && <span className='bold'>Error -  hover for details</span> || " "}</p>
             </div>
           })}
           </div>
